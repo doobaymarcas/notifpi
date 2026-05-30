@@ -3,126 +3,163 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DOOBAY Notif — Controle de Notificações</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<title>DOOBAY NOTIF</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <style>
 :root{
-  --bg:#0f0f11;--bg2:#17171a;--bg3:#1e1e23;
+  --bg:#0f0f11;--bg2:#17171a;--bg3:#1e1e23;--bg4:#25252b;
   --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
   --text:#f0f0f2;--text2:#9191a0;--text3:#5a5a6a;
-  --accent:#4f6ef7;--accent2:#3a55d4;--accent-glow:rgba(79,110,247,0.15);
+  --accent:#4f6ef7;--accent2:#3a55d4;--glow:rgba(79,110,247,0.15);
   --success:#2dd4a0;--warning:#f5a623;--danger:#f05252;
   --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
   --r:10px;--rl:16px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
 
 /* LOGIN */
 #loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh}
 .login-card{background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--rl);padding:2.5rem;width:380px}
 .login-logo{display:flex;align-items:center;gap:10px;margin-bottom:2rem}
-.login-logo-icon{width:38px;height:38px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;font-weight:700;font-family:var(--mono);letter-spacing:-1px}
-.login-brand{font-size:20px;font-weight:700;letter-spacing:-0.5px;color:var(--text)}
-.login-brand span{color:var(--accent)}
-.login-sub-brand{font-size:10px;color:var(--text3);font-family:var(--mono);letter-spacing:.1em}
+.logo-icon{width:38px;height:38px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;font-family:var(--mono);letter-spacing:-1px}
+.brand{font-size:20px;font-weight:700;letter-spacing:-.5px}
+.brand span{color:var(--accent)}
+.brand-sub{font-size:9px;color:var(--text3);font-family:var(--mono);letter-spacing:.1em}
 .login-title{font-size:22px;font-weight:600;margin-bottom:4px}
 .login-sub{font-size:13px;color:var(--text2);margin-bottom:1.75rem}
 .field{margin-bottom:1rem}
-.field label{display:block;font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:500;font-family:var(--mono);letter-spacing:.04em;text-transform:uppercase}
+.field label{display:block;font-size:10px;color:var(--text3);margin-bottom:5px;font-weight:500;font-family:var(--mono);letter-spacing:.05em;text-transform:uppercase}
 .field input{width:100%;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--r);padding:10px 14px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;transition:border-color .2s}
 .field input:focus{border-color:var(--accent)}
-.btn-login{width:100%;background:var(--accent);color:#fff;border:none;border-radius:var(--r);padding:12px;font-family:var(--font);font-size:14px;font-weight:500;cursor:pointer;transition:background .2s;margin-top:.5rem}
+.btn-login{width:100%;background:var(--accent);color:#fff;border:none;border-radius:var(--r);padding:12px;font-family:var(--font);font-size:14px;font-weight:500;cursor:pointer;transition:background .2s}
 .btn-login:hover{background:var(--accent2)}
-.login-error{background:rgba(240,82,82,0.1);border:0.5px solid rgba(240,82,82,0.3);border-radius:8px;padding:10px 14px;font-size:13px;color:#f05252;margin-bottom:1rem;display:none}
-.login-error.show{display:block}
+.login-err{background:rgba(240,82,82,.1);border:0.5px solid rgba(240,82,82,.3);border-radius:8px;padding:10px 14px;font-size:13px;color:#f05252;margin-bottom:1rem;display:none}
+.login-err.show{display:block}
 
-/* APP */
+/* APP SHELL */
 #app{display:none;min-height:100vh}
-.sidebar{position:fixed;left:0;top:0;bottom:0;width:224px;background:var(--bg2);border-right:0.5px solid var(--border);display:flex;flex-direction:column;padding:1.25rem 0;z-index:50}
+.topbar{position:fixed;top:0;left:220px;right:0;height:52px;background:var(--bg2);border-bottom:0.5px solid var(--border);display:flex;align-items:center;padding:0 1.5rem;gap:12px;z-index:40}
+.topbar-title{font-size:14px;font-weight:500;flex:1}
+.topbar-right{display:flex;align-items:center;gap:10px}
+
+/* BELL */
+.bell-wrap{position:relative;cursor:pointer}
+.bell-btn{width:34px;height:34px;border-radius:var(--r);background:var(--bg3);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text2);cursor:pointer;transition:all .15s;position:relative}
+.bell-btn:hover{color:var(--text);background:var(--bg4)}
+.bell-badge{position:absolute;top:-5px;right:-5px;background:var(--danger);color:#fff;font-size:9px;font-weight:700;font-family:var(--mono);min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--bg2)}
+.bell-badge.hidden{display:none}
+.notif-panel{position:absolute;top:42px;right:0;width:360px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--rl);box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:300;display:none;max-height:480px;overflow:hidden;flex-direction:column}
+.notif-panel.open{display:flex}
+.notif-panel-head{padding:12px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.notif-panel-title{font-size:13px;font-weight:500}
+.notif-list{overflow-y:auto;flex:1}
+.notif-item{padding:12px 16px;border-bottom:0.5px solid var(--border);cursor:pointer;transition:background .1s}
+.notif-item:hover{background:var(--bg3)}
+.notif-item-head{display:flex;align-items:flex-start;gap:8px}
+.notif-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.notif-item-title{font-size:12px;font-weight:500;color:var(--text);line-height:1.4}
+.notif-item-sub{font-size:11px;color:var(--text3);margin-top:3px}
+.notif-item-action{font-size:11px;color:var(--accent);margin-top:4px;font-weight:500}
+.no-notifs{padding:2rem;text-align:center;color:var(--text3);font-size:13px}
+
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:220px;background:var(--bg2);border-right:0.5px solid var(--border);display:flex;flex-direction:column;padding:1.25rem 0;z-index:50}
 .sidebar-logo{padding:0 1.25rem 1.25rem;border-bottom:0.5px solid var(--border);margin-bottom:.5rem}
-.brand-name{font-size:18px;font-weight:700;letter-spacing:-0.5px;color:var(--text)}
-.brand-name span{color:var(--accent)}
-.brand-sub{font-size:9px;color:var(--text3);font-family:var(--mono);letter-spacing:.1em;margin-top:1px}
-nav{flex:1;padding:.5rem 0}
 .nav-section{font-size:9px;font-weight:500;color:var(--text3);font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:10px 1.25rem 4px}
+nav{flex:1;padding:.5rem 0}
 .nav-item{display:flex;align-items:center;gap:9px;padding:8px 1.25rem;cursor:pointer;color:var(--text2);transition:all .15s;font-size:13px;border-left:2px solid transparent}
-.nav-item:hover{color:var(--text);background:rgba(255,255,255,0.03)}
-.nav-item.active{color:var(--accent);background:var(--accent-glow);border-left-color:var(--accent);font-weight:500}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,.03)}
+.nav-item.active{color:var(--accent);background:var(--glow);border-left-color:var(--accent);font-weight:500}
 .nav-item i{font-size:15px;flex-shrink:0}
 .sidebar-footer{padding:1rem 1.25rem;border-top:0.5px solid var(--border)}
 .user-info{display:flex;align-items:center;gap:8px}
-.user-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent-glow);border:1px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--accent);flex-shrink:0}
-.user-name{font-size:12px;font-weight:500;color:var(--text)}
-.user-role{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--glow);border:1px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--accent);flex-shrink:0}
+.u-name{font-size:12px;font-weight:500}
+.u-role{font-size:10px;color:var(--text3);font-family:var(--mono)}
 .btn-logout{margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;border-radius:4px}
 .btn-logout:hover{color:var(--danger)}
-.main{margin-left:224px;padding:2rem;min-height:100vh}
-.page-header{margin-bottom:1.75rem;display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
-.page-title{font-size:20px;font-weight:600;letter-spacing:-0.3px}
+.main{margin-left:220px;padding-top:52px;padding:52px 1.75rem 2rem;min-height:100vh}
+.page-header{margin-bottom:1.5rem;display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding-top:1.5rem}
+.page-title{font-size:20px;font-weight:600;letter-spacing:-.3px}
 .page-sub{font-size:13px;color:var(--text2);margin-top:3px}
 
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);border:0.5px solid var(--border2);background:var(--bg3);color:var(--text);cursor:pointer;font-family:var(--font);font-size:13px;transition:all .15s;white-space:nowrap;height:34px}
+.btn:hover{background:var(--bg4)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent2)}
+.btn.sm{height:28px;padding:4px 10px;font-size:12px}
+.btn.icon-only{width:28px;padding:0;justify-content:center}
+
+/* INPUTS */
+input,select,textarea{background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--r);padding:8px 12px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;transition:border-color .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+select option{background:var(--bg3)}
+
 /* METRICS */
-.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.75rem}
-.metric-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--rl);padding:1.25rem}
+.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem}
+.metric-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--rl);padding:1.25rem;cursor:pointer;transition:border-color .2s}
+.metric-card:hover{border-color:var(--border2)}
 .metric-label{font-size:10px;color:var(--text3);font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px}
-.metric-val{font-size:28px;font-weight:600;letter-spacing:-1px}
+.metric-val{font-size:28px;font-weight:600;letter-spacing:-1px;transition:color .2s}
 .metric-val.danger{color:var(--danger)}
 .metric-val.warning{color:var(--warning)}
 .metric-val.success{color:var(--success)}
 .metric-val.accent{color:var(--accent)}
 .metric-sub{font-size:11px;color:var(--text3);margin-top:4px}
+.metric-filter{display:flex;align-items:center;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap}
+.metric-filter label{font-size:12px;color:var(--text2)}
 
-/* ALERT */
-.alert-banner{background:rgba(240,82,82,0.08);border:0.5px solid rgba(240,82,82,0.25);border-radius:var(--r);padding:10px 16px;font-size:13px;color:#f9a8a8;margin-bottom:1.25rem;display:none;align-items:center;gap:8px}
+/* ALERT BANNER */
+.alert-banner{background:rgba(240,82,82,.08);border:0.5px solid rgba(240,82,82,.25);border-radius:var(--r);padding:10px 16px;font-size:13px;color:#f9a8a8;margin-bottom:1.25rem;display:none;align-items:center;gap:8px}
 .alert-banner.show{display:flex}
 
-/* CARDS / TABLES */
+/* CARD */
 .card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:1.25rem}
 .card-header{padding:1rem 1.25rem;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .card-title{font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px}
 .toolbar{display:flex;gap:8px;align-items:center;flex:1;flex-wrap:wrap}
-input,select,textarea{background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--r);padding:8px 12px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;transition:border-color .2s}
-input:focus,select:focus,textarea:focus{border-color:var(--accent)}
-select option{background:var(--bg3)}
 .search-input{flex:1;min-width:160px;height:34px}
 .filter-select{height:34px;min-width:130px}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);border:0.5px solid var(--border2);background:var(--bg3);color:var(--text);cursor:pointer;font-family:var(--font);font-size:13px;font-weight:400;transition:all .15s;white-space:nowrap;height:34px}
-.btn:hover{background:var(--bg2)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-.btn.primary:hover{background:var(--accent2)}
-.btn.sm{height:28px;padding:4px 10px;font-size:12px}
-.btn.icon-only{width:28px;padding:0;justify-content:center}
+
+/* TABLE */
 table{width:100%;border-collapse:collapse}
 th{text-align:left;padding:9px 14px;font-size:10px;font-weight:500;color:var(--text3);font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;border-bottom:0.5px solid var(--border);white-space:nowrap}
 td{padding:9px 14px;border-bottom:0.5px solid var(--border);font-size:13px;color:var(--text2);vertical-align:middle}
 tr:last-child td{border-bottom:none}
-tr:hover td{background:rgba(255,255,255,0.015)}
+tr:hover td{background:rgba(255,255,255,.015)}
 td.pc{color:var(--text);font-weight:500}
 
 /* BADGES */
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:500;font-family:var(--mono);white-space:nowrap}
 .badge::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
-.badge.vencido{background:rgba(240,82,82,0.12);color:#f87171}.badge.vencido::before{background:#f05252}
-.badge.urgente{background:rgba(245,166,35,0.12);color:#fbbf24}.badge.urgente::before{background:#f5a623}
-.badge.ok,.badge.respondido{background:rgba(45,212,160,0.12);color:#34d399}.badge.ok::before,.badge.respondido::before{background:#2dd4a0}
-.badge.aguardando{background:rgba(79,110,247,0.12);color:#818cf8}.badge.aguardando::before{background:#4f6ef7}
-.badge.arquivado{background:rgba(100,100,120,0.2);color:#888}.badge.arquivado::before{background:#666}
-.badge.standby{background:rgba(245,166,35,0.08);color:#9a7a30}.badge.standby::before{background:#f5a623}
-.badge.admin{background:rgba(245,166,35,0.12);color:#fbbf24;font-size:10px}
-.badge.user{background:rgba(255,255,255,0.06);color:var(--text3);font-size:10px}
+.badge.vencido{background:rgba(240,82,82,.12);color:#f87171}.badge.vencido::before{background:#f05252}
+.badge.urgente{background:rgba(245,166,35,.12);color:#fbbf24}.badge.urgente::before{background:#f5a623}
+.badge.ok,.badge.resolvido{background:rgba(45,212,160,.12);color:#34d399}.badge.ok::before,.badge.resolvido::before{background:#2dd4a0}
+.badge.aguardando,.badge.enviada{background:rgba(79,110,247,.12);color:#818cf8}.badge.aguardando::before,.badge.enviada::before{background:#4f6ef7}
+.badge.arquivado{background:rgba(100,100,120,.2);color:#888}.badge.arquivado::before{background:#666}
+.badge.standby{background:rgba(245,166,35,.08);color:#9a7a30}.badge.standby::before{background:#f5a623}
+.badge.judicial{background:rgba(168,85,247,.15);color:#c084fc}.badge.judicial::before{background:#a855f7}
+.badge.ag-cliente{background:rgba(251,146,60,.12);color:#fb923c}.badge.ag-cliente::before{background:#f97316}
+.badge.cadastrada{background:rgba(148,163,184,.1);color:#94a3b8}.badge.cadastrada::before{background:#94a3b8}
+.badge.respondida{background:rgba(45,212,160,.12);color:#34d399}.badge.respondida::before{background:#2dd4a0}
+.badge.admin{background:rgba(245,166,35,.12);color:#fbbf24;font-size:10px}
+.badge.user{background:rgba(255,255,255,.06);color:var(--text3);font-size:10px}
 
-/* CHANNEL TAGS */
-.ch-tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:500;background:rgba(255,255,255,0.06);color:var(--text2);margin-right:3px;margin-bottom:2px}
+/* CHANNELS */
+.ch-tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:500;background:rgba(255,255,255,.06);color:var(--text2);margin-right:3px;margin-bottom:2px}
+.channels-grid{display:flex;gap:8px;flex-wrap:wrap}
+.ch-check{display:flex;align-items:center;gap:6px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--r);padding:7px 12px;cursor:pointer;transition:all .15s;font-size:13px;color:var(--text2)}
+.ch-check input{display:none}
+.ch-check.selected{border-color:var(--accent);background:var(--glow);color:var(--text)}
+.ch-check i{font-size:15px}
 
 /* MODAL */
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
 .modal-bg.open{display:flex}
-.modal{background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--rl);padding:1.75rem;width:540px;max-width:96vw;max-height:90vh;overflow-y:auto}
-.modal.wide{width:640px}
-.modal.xl{width:780px}
+.modal{background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--rl);padding:1.75rem;width:560px;max-width:96vw;max-height:90vh;overflow-y:auto}
+.modal.wide{width:660px}
 .modal h2{font-size:16px;font-weight:600;margin-bottom:1.5rem;display:flex;align-items:center;gap:8px}
 .modal h2 i{color:var(--accent)}
 .form-row{margin-bottom:1rem}
@@ -130,20 +167,19 @@ td.pc{color:var(--text);font-weight:500}
 .form-row input,.form-row select,.form-row textarea{width:100%}
 .form-row textarea{min-height:70px;resize:vertical;line-height:1.5}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.form-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 .modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:1.5rem;padding-top:1rem;border-top:0.5px solid var(--border)}
-.section-divider{font-size:10px;font-weight:500;color:var(--text3);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:8px 0 6px;border-bottom:0.5px solid var(--border);margin-bottom:12px;margin-top:16px}
-
-/* CHANNELS CHECKBOXES */
-.channels-grid{display:flex;gap:8px;flex-wrap:wrap}
-.ch-check{display:flex;align-items:center;gap:6px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--r);padding:7px 12px;cursor:pointer;transition:all .15s;font-size:13px;color:var(--text2)}
-.ch-check input{display:none}
-.ch-check.selected{border-color:var(--accent);background:var(--accent-glow);color:var(--text)}
-.ch-check i{font-size:15px}
+.sec-div{font-size:10px;font-weight:500;color:var(--text3);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:8px 0 6px;border-bottom:0.5px solid var(--border);margin-bottom:12px;margin-top:16px}
 
 /* PROGRESS */
 .progress-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:8px}
 .progress-fill{height:100%;border-radius:2px}
+
+/* DETAIL */
+.detail-section{margin-bottom:1.25rem}
+.detail-section h3{font-size:10px;font-weight:500;color:var(--text3);font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:0.5px solid var(--border)}
+.kv{display:flex;gap:8px;padding:4px 0;font-size:13px}
+.kv .k{color:var(--text3);min-width:150px;flex-shrink:0}
+.kv .v{color:var(--text);font-weight:500}
 
 /* TIMELINE */
 .tl-item{display:flex;gap:12px;padding:11px 0;border-bottom:0.5px solid var(--border)}
@@ -156,36 +192,68 @@ td.pc{color:var(--text);font-weight:500}
 .empty-state{text-align:center;padding:3rem;color:var(--text3);font-size:13px}
 .empty-state i{font-size:28px;display:block;margin-bottom:8px;opacity:.4}
 
-/* DETAIL */
-.detail-section{margin-bottom:1.25rem}
-.detail-section h3{font-size:10px;font-weight:500;color:var(--text3);font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:0.5px solid var(--border)}
-.kv{display:flex;gap:8px;padding:4px 0;font-size:13px}
-.kv .k{color:var(--text3);min-width:150px;flex-shrink:0}
-.kv .v{color:var(--text);font-weight:500}
+/* KANBAN */
+.kanban-tabs{display:flex;gap:4px;margin-bottom:1rem;border-bottom:0.5px solid var(--border)}
+.kanban-tab{padding:8px 16px;font-size:13px;border:none;background:none;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-0.5px;font-family:var(--font)}
+.kanban-tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:500}
+.kanban-board{display:flex;gap:12px;overflow-x:auto;padding-bottom:1rem;min-height:520px}
+.kanban-col{flex:0 0 220px;display:flex;flex-direction:column;gap:0}
+.kanban-col-head{padding:10px 12px;border-radius:var(--r) var(--r) 0 0;display:flex;align-items:center;justify-content:space-between;margin-bottom:0}
+.kanban-col-title{font-size:11px;font-weight:600;font-family:var(--mono);letter-spacing:.05em;text-transform:uppercase}
+.kanban-col-count{font-size:10px;font-family:var(--mono);background:rgba(255,255,255,.1);padding:2px 7px;border-radius:8px;font-weight:600}
+.kanban-col-body{flex:1;background:var(--bg3);border-radius:0 0 var(--r) var(--r);padding:8px;display:flex;flex-direction:column;gap:8px;min-height:400px;border:0.5px solid var(--border);border-top:none;transition:background .15s}
+.kanban-col-body.drag-over{background:rgba(79,110,247,.08);border-color:var(--accent)}
+.kcard{background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--r);padding:12px;cursor:grab;transition:all .15s;position:relative}
+.kcard:hover{border-color:var(--border2);box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.kcard.dragging{opacity:.4}
+.kcard-type{font-size:9px;font-family:var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
+.kcard-title{font-size:12px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:4px}
+.kcard-sub{font-size:11px;color:var(--text3);margin-bottom:8px;line-height:1.4}
+.kcard-footer{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.kcard-date{font-size:10px;font-family:var(--mono);color:var(--text3)}
+.kcard-urgency{font-size:10px;font-family:var(--mono);font-weight:600;padding:2px 6px;border-radius:3px}
+.kcard-urgency.red{background:rgba(240,82,82,.15);color:#f87171}
+.kcard-urgency.amber{background:rgba(245,166,35,.15);color:#fbbf24}
+.kcard-urgency.green{background:rgba(45,212,160,.15);color:#34d399}
+.kcard-urgency.gray{background:rgba(100,100,120,.15);color:#888}
+.kcard-actions{display:flex;gap:3px;margin-top:8px}
 
 /* CALENDAR */
 .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
-.cal-month{font-size:16px;font-weight:600}
-.cal-nav{display:flex;gap:6px}
+.cal-month-label{font-size:16px;font-weight:600}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .cal-dow{text-align:center;font-size:10px;font-family:var(--mono);color:var(--text3);padding-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
 .cal-day{position:relative;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;cursor:pointer;transition:background .15s;font-size:13px;color:var(--text2)}
 .cal-day:hover{background:var(--bg3)}
-.cal-day.today{background:var(--accent-glow);color:var(--accent);font-weight:600}
+.cal-day.today{background:var(--glow);color:var(--accent);font-weight:600}
 .cal-day.has-events .dot-ind{display:block}
 .cal-day.selected{background:var(--accent);color:#fff}
-.cal-day.selected .dot-ind{background:#fff}
 .cal-day.other-month{color:var(--text3);opacity:.4}
 .dot-ind{display:none;width:5px;height:5px;border-radius:50%;background:var(--danger);position:absolute;bottom:4px}
-.cal-day-num{font-size:13px;line-height:1}
 .day-events-panel{background:var(--bg3);border-radius:var(--r);padding:1rem;margin-top:1rem;min-height:60px}
 .day-events-title{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:10px;font-family:var(--mono)}
 .day-event-item{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--border)}
 .day-event-item:last-child{border-bottom:none}
-.day-event-dot{width:7px;height:7px;border-radius:50%;margin-top:4px;flex-shrink:0}
-.day-event-body{flex:1}
-.day-event-title{font-size:12px;font-weight:500;color:var(--text)}
-.day-event-sub{font-size:11px;color:var(--text3)}
+
+/* KANBAN COL COLORS */
+.col-cadastrada .kanban-col-head{background:rgba(148,163,184,.08)}
+.col-cadastrada .kanban-col-title{color:#94a3b8}
+.col-enviada .kanban-col-head{background:rgba(79,110,247,.08)}
+.col-enviada .kanban-col-title{color:#818cf8}
+.col-aguardando .kanban-col-head{background:rgba(245,166,35,.08)}
+.col-aguardando .kanban-col-title{color:#fbbf24}
+.col-respondida .kanban-col-head{background:rgba(45,212,160,.08)}
+.col-respondida .kanban-col-title{color:#34d399}
+.col-resolvida .kanban-col-head{background:rgba(45,212,160,.06)}
+.col-resolvida .kanban-col-title{color:#2dd4a0}
+.col-standby .kanban-col-head{background:rgba(245,166,35,.06)}
+.col-standby .kanban-col-title{color:#9a7a30}
+.col-arquivada .kanban-col-head{background:rgba(100,100,120,.1)}
+.col-arquivada .kanban-col-title{color:#888}
+.col-ag-cliente .kanban-col-head{background:rgba(251,146,60,.08)}
+.col-ag-cliente .kanban-col-title{color:#fb923c}
+.col-judicial .kanban-col-head{background:rgba(168,85,247,.08)}
+.col-judicial .kanban-col-title{color:#c084fc}
 </style>
 </head>
 <body>
@@ -194,15 +262,15 @@ td.pc{color:var(--text);font-weight:500}
 <div id="loginScreen">
   <div class="login-card">
     <div class="login-logo">
-      <div class="login-logo-icon">DN</div>
+      <div class="logo-icon">DN</div>
       <div>
-        <div class="login-brand"><span>DOOBAY</span> NOTIF</div>
-        <div class="login-sub-brand">PROPRIEDADE INTELECTUAL</div>
+        <div class="brand"><span>DOOBAY</span> NOTIF</div>
+        <div class="brand-sub">PROPRIEDADE INTELECTUAL</div>
       </div>
     </div>
     <div class="login-title">Bem-vindo de volta</div>
     <div class="login-sub">Acesso restrito à equipe autorizada</div>
-    <div id="loginError" class="login-error"></div>
+    <div id="loginErr" class="login-err"></div>
     <div class="field"><label>Usuário</label><input type="text" id="loginUser" placeholder="seu.usuario" autocomplete="username"></div>
     <div class="field"><label>Senha</label><input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"></div>
     <button class="btn-login" onclick="doLogin()"><i class="ti ti-login" style="margin-right:6px"></i>Entrar</button>
@@ -211,40 +279,68 @@ td.pc{color:var(--text);font-weight:500}
 
 <!-- APP -->
 <div id="app">
+  <!-- TOPBAR -->
+  <div class="topbar" style="left:220px">
+    <span class="topbar-title" id="topbarTitle">Painel</span>
+    <div class="topbar-right">
+      <div class="bell-wrap">
+        <div class="bell-btn" onclick="toggleBell()" id="bellBtn">
+          <i class="ti ti-bell"></i>
+          <div class="bell-badge hidden" id="bellBadge">0</div>
+        </div>
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-panel-head">
+            <span class="notif-panel-title">Alertas pendentes</span>
+            <button class="btn sm" onclick="markAllRead()">Limpar tudo</button>
+          </div>
+          <div class="notif-list" id="notifList"></div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text3);font-family:var(--mono)" id="topbarUser"></div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
   <div class="sidebar">
     <div class="sidebar-logo">
-      <div class="brand-name"><span>DOOBAY</span> NOTIF</div>
-      <div class="brand-sub">PROP. INTELECTUAL</div>
+      <div class="brand"><span>DOOBAY</span> NOTIF</div>
+      <div class="brand-sub" style="font-size:9px;color:var(--text3);font-family:var(--mono);letter-spacing:.1em">PROP. INTELECTUAL</div>
     </div>
     <nav>
       <div class="nav-section">Visão geral</div>
-      <div class="nav-item active" onclick="showPage('painel')" id="nav-painel"><i class="ti ti-layout-dashboard"></i> Painel</div>
-      <div class="nav-item" onclick="showPage('calendario')" id="nav-calendario"><i class="ti ti-calendar"></i> Calendário</div>
+      <div class="nav-item active" onclick="showPage('painel')" id="nav-painel"><i class="ti ti-layout-dashboard"></i>Painel</div>
+      <div class="nav-item" onclick="showPage('calendario')" id="nav-calendario"><i class="ti ti-calendar"></i>Calendário</div>
       <div class="nav-section">Casos</div>
-      <div class="nav-item" onclick="showPage('notificacoes')" id="nav-notificacoes"><i class="ti ti-send"></i> Notificações</div>
-      <div class="nav-item" onclick="showPage('contra')" id="nav-contra"><i class="ti ti-inbox"></i> Contra-notificações</div>
-      <div class="nav-item" onclick="showPage('emails')" id="nav-emails"><i class="ti ti-mail"></i> E-mails / follow-up</div>
+      <div class="nav-item" onclick="showPage('kanban')" id="nav-kanban"><i class="ti ti-layout-kanban"></i>Kanban</div>
+      <div class="nav-item" onclick="showPage('notificacoes')" id="nav-notificacoes"><i class="ti ti-send"></i>Notificações</div>
+      <div class="nav-item" onclick="showPage('contra')" id="nav-contra"><i class="ti ti-inbox"></i>Contra-notificações</div>
+      <div class="nav-item" onclick="showPage('emails')" id="nav-emails"><i class="ti ti-mail"></i>E-mails / follow-up</div>
       <div class="nav-section">Sistema</div>
-      <div class="nav-item" id="nav-usuarios" style="display:none" onclick="showPage('usuarios')"><i class="ti ti-users"></i> Usuários</div>
+      <div class="nav-item" id="nav-usuarios" style="display:none" onclick="showPage('usuarios')"><i class="ti ti-users"></i>Usuários</div>
     </nav>
     <div class="sidebar-footer">
       <div class="user-info">
-        <div class="user-avatar" id="sidebarAvatar">--</div>
-        <div>
-          <div class="user-name" id="sidebarName">—</div>
-          <div class="user-role" id="sidebarRole">—</div>
-        </div>
-        <button class="btn-logout" onclick="doLogout()" title="Sair"><i class="ti ti-logout" style="font-size:15px"></i></button>
+        <div class="avatar" id="sidebarAvatar">--</div>
+        <div><div class="u-name" id="sidebarName">—</div><div class="u-role" id="sidebarRole">—</div></div>
+        <button class="btn-logout" onclick="doLogout()"><i class="ti ti-logout" style="font-size:15px"></i></button>
       </div>
     </div>
   </div>
 
   <div class="main">
-
     <!-- PAINEL -->
     <div id="page-painel">
       <div class="page-header">
-        <div><div class="page-title">Painel geral</div><div class="page-sub">Visão consolidada de todos os casos ativos</div></div>
+        <div><div class="page-title">Painel geral</div><div class="page-sub">Clique nos números para ver os casos</div></div>
+      </div>
+      <div class="metric-filter">
+        <label>Período:</label>
+        <select id="metricMonth" onchange="renderPainel()" style="height:32px;font-size:12px">
+          <option value="">Todos os meses</option>
+        </select>
+        <select id="metricYear" onchange="renderPainel()" style="height:32px;font-size:12px">
+          <option value="">Todos os anos</option>
+        </select>
       </div>
       <div id="alertBanner" class="alert-banner"><i class="ti ti-alert-triangle"></i><span id="alertText"></span></div>
       <div class="metrics-grid" id="metricsGrid"></div>
@@ -254,60 +350,43 @@ td.pc{color:var(--text);font-weight:500}
       </div>
     </div>
 
-    <!-- CALENDÁRIO -->
-    <div id="page-calendario" style="display:none">
+    <!-- KANBAN -->
+    <div id="page-kanban" style="display:none">
       <div class="page-header">
-        <div><div class="page-title">Calendário de prazos</div><div class="page-sub">Visualize notificações e vencimentos por dia</div></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 340px;gap:1.25rem">
-        <div class="card" style="padding:1.5rem">
-          <div class="cal-header">
-            <div class="cal-month" id="calMonthLabel"></div>
-            <div class="cal-nav">
-              <button class="btn sm icon-only" onclick="calNav(-1)"><i class="ti ti-chevron-left"></i></button>
-              <button class="btn sm" onclick="calToday()">Hoje</button>
-              <button class="btn sm icon-only" onclick="calNav(1)"><i class="ti ti-chevron-right"></i></button>
-            </div>
-          </div>
-          <div class="cal-grid" id="calGrid"></div>
-          <div class="day-events-panel" id="dayEventsPanel">
-            <div class="day-events-title">Selecione um dia para ver os casos</div>
-          </div>
-        </div>
-        <div>
-          <div class="card" style="padding:1.25rem;margin-bottom:1.25rem">
-            <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:12px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em">Legenda</div>
-            <div style="display:flex;flex-direction:column;gap:8px;font-size:12px">
-              <div style="display:flex;align-items:center;gap:8px"><div style="width:8px;height:8px;border-radius:50%;background:var(--danger)"></div><span style="color:var(--text2)">Prazo vencendo / vencido</span></div>
-              <div style="display:flex;align-items:center;gap:8px"><div style="width:8px;height:8px;border-radius:50%;background:var(--accent)"></div><span style="color:var(--text2)">Hoje</span></div>
-            </div>
-          </div>
-          <div class="card" style="padding:1.25rem">
-            <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:12px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em">Este mês</div>
-            <div id="monthSummary"></div>
-          </div>
+        <div><div class="page-title">Kanban de casos</div><div class="page-sub">Arraste os cards entre colunas para atualizar o status</div></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn primary" onclick="openModal('notif')"><i class="ti ti-plus"></i>Nova notificação</button>
+          <button class="btn primary" onclick="openModal('contra')"><i class="ti ti-plus"></i>Nova contra-notif.</button>
         </div>
       </div>
+      <div class="kanban-tabs">
+        <button class="kanban-tab active" onclick="switchKanban('notif',this)">Notificações</button>
+        <button class="kanban-tab" onclick="switchKanban('contra',this)">Contra-notificações</button>
+      </div>
+      <div class="kanban-board" id="kanbanBoard"></div>
     </div>
 
-    <!-- NOTIFICAÇÕES -->
+    <!-- NOTIFICAÇÕES tabela -->
     <div id="page-notificacoes" style="display:none">
       <div class="page-header">
-        <div><div class="page-title">Notificações extrajudiciais</div><div class="page-sub">Notificações enviadas pelo escritório em nome de clientes</div></div>
-        <button class="btn primary" onclick="openModal('notif')"><i class="ti ti-plus"></i> Nova notificação</button>
+        <div><div class="page-title">Notificações</div><div class="page-sub">Lista completa de notificações extrajudiciais</div></div>
+        <button class="btn primary" onclick="openModal('notif')"><i class="ti ti-plus"></i>Nova notificação</button>
       </div>
       <div class="card">
         <div class="card-header">
           <div class="toolbar">
-            <input type="text" class="search-input" id="searchNotif" placeholder="Buscar por cliente, notificado ou marca…" oninput="renderNotif()">
+            <input type="text" class="search-input" id="searchNotif" placeholder="Buscar…" oninput="renderNotif()">
             <select class="filter-select" id="filterStatus" onchange="renderNotif()">
-              <option value="">Todos os status</option>
+              <option value="">Todos</option>
+              <option value="cadastrada">Cadastrada</option>
+              <option value="enviada">Enviada</option>
               <option value="aguardando">Aguardando</option>
-              <option value="urgente">Urgente</option>
-              <option value="vencido">Vencido</option>
-              <option value="respondido">Respondido</option>
-              <option value="arquivado">Arquivado</option>
+              <option value="respondida">Respondida</option>
+              <option value="resolvida">Resolvida</option>
               <option value="standby">Stand-by</option>
+              <option value="arquivada">Arquivada</option>
+              <option value="ag-cliente">Ag. Cliente</option>
+              <option value="judicial">Ag. Judicial</option>
             </select>
           </div>
         </div>
@@ -315,11 +394,11 @@ td.pc{color:var(--text);font-weight:500}
       </div>
     </div>
 
-    <!-- CONTRA-NOTIFICAÇÕES -->
+    <!-- CONTRA tabela -->
     <div id="page-contra" style="display:none">
       <div class="page-header">
-        <div><div class="page-title">Contra-notificações</div><div class="page-sub">Casos em que nossos clientes foram notificados e respondemos</div></div>
-        <button class="btn primary" onclick="openModal('contra')"><i class="ti ti-plus"></i> Nova contra-notificação</button>
+        <div><div class="page-title">Contra-notificações</div><div class="page-sub">Lista completa de contra-notificações</div></div>
+        <button class="btn primary" onclick="openModal('contra')"><i class="ti ti-plus"></i>Nova contra-notificação</button>
       </div>
       <div class="card">
         <div class="card-header">
@@ -327,10 +406,15 @@ td.pc{color:var(--text);font-weight:500}
             <input type="text" class="search-input" id="searchContra" placeholder="Buscar…" oninput="renderContra()">
             <select class="filter-select" id="filterContra" onchange="renderContra()">
               <option value="">Todos</option>
-              <option value="aguardando">Aguardando retorno</option>
-              <option value="respondido">Encerrado</option>
-              <option value="arquivado">Arquivado</option>
+              <option value="cadastrada">Cadastrada</option>
+              <option value="enviada">Enviada</option>
+              <option value="aguardando">Aguardando</option>
+              <option value="respondida">Respondida</option>
+              <option value="resolvida">Resolvida</option>
               <option value="standby">Stand-by</option>
+              <option value="arquivada">Arquivada</option>
+              <option value="ag-cliente">Ag. Cliente</option>
+              <option value="judicial">Ag. Judicial</option>
             </select>
           </div>
         </div>
@@ -341,15 +425,15 @@ td.pc{color:var(--text);font-weight:500}
     <!-- EMAILS -->
     <div id="page-emails" style="display:none">
       <div class="page-header">
-        <div><div class="page-title">E-mails e follow-ups</div><div class="page-sub">Registro de todas as comunicações por caso</div></div>
-        <button class="btn primary" onclick="openModal('email')"><i class="ti ti-plus"></i> Registrar e-mail</button>
+        <div><div class="page-title">E-mails e follow-ups</div></div>
+        <button class="btn primary" onclick="openModal('email')"><i class="ti ti-plus"></i>Registrar e-mail</button>
       </div>
       <div class="card">
         <div class="card-header">
           <div class="toolbar">
             <input type="text" class="search-input" id="searchEmail" placeholder="Buscar…" oninput="renderEmails()">
             <select class="filter-select" id="filterEmailType" onchange="renderEmails()">
-              <option value="">Todos os tipos</option>
+              <option value="">Todos</option>
               <option value="followup">Follow-up</option>
               <option value="cobranca">Cobrança</option>
               <option value="2anotif">2ª notificação</option>
@@ -360,59 +444,82 @@ td.pc{color:var(--text);font-weight:500}
       </div>
     </div>
 
+    <!-- CALENDÁRIO -->
+    <div id="page-calendario" style="display:none">
+      <div class="page-header"><div><div class="page-title">Calendário</div><div class="page-sub">Prazos por dia</div></div></div>
+      <div style="display:grid;grid-template-columns:1fr 320px;gap:1.25rem">
+        <div class="card" style="padding:1.5rem">
+          <div class="cal-header">
+            <div class="cal-month-label" id="calMonthLabel"></div>
+            <div style="display:flex;gap:6px">
+              <button class="btn sm icon-only" onclick="calNav(-1)"><i class="ti ti-chevron-left"></i></button>
+              <button class="btn sm" onclick="calToday()">Hoje</button>
+              <button class="btn sm icon-only" onclick="calNav(1)"><i class="ti ti-chevron-right"></i></button>
+            </div>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+          <div class="day-events-panel" id="dayEventsPanel"><div class="day-events-title">Selecione um dia</div></div>
+        </div>
+        <div>
+          <div class="card" style="padding:1.25rem">
+            <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:12px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em">Resumo do mês</div>
+            <div id="monthSummary"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- USUÁRIOS -->
     <div id="page-usuarios" style="display:none">
       <div class="page-header">
-        <div><div class="page-title">Gerenciar usuários</div><div class="page-sub">Apenas administradores podem criar e remover acessos</div></div>
-        <button class="btn primary" onclick="openModal('usuario')"><i class="ti ti-user-plus"></i> Novo usuário</button>
+        <div><div class="page-title">Usuários</div></div>
+        <button class="btn primary" onclick="openModal('usuario')"><i class="ti ti-user-plus"></i>Novo usuário</button>
       </div>
       <div class="card"><div id="usersTableWrap"></div></div>
     </div>
-
   </div>
 </div>
 
 <!-- MODAL NOTIFICAÇÃO -->
 <div class="modal-bg" id="modal-notif">
 <div class="modal wide">
-  <h2><i class="ti ti-send"></i>Nova notificação extrajudicial</h2>
-  <div class="section-divider">Identificação</div>
+  <h2><i class="ti ti-send"></i>Nova notificação</h2>
+  <div class="sec-div">Identificação</div>
   <div class="form-grid">
-    <div class="form-row"><label>Cliente (titular da marca)</label><input type="text" id="n-cliente" placeholder="Empresa ABC Ltda"></div>
+    <div class="form-row"><label>Cliente (titular)</label><input type="text" id="n-cliente" placeholder="Empresa ABC Ltda"></div>
     <div class="form-row"><label>Notificado</label><input type="text" id="n-notificado" placeholder="Comércio XYZ"></div>
   </div>
   <div class="form-grid">
-    <div class="form-row"><label>Marca envolvida</label><input type="text" id="n-marca" placeholder="MARCA FORTE®"></div>
-    <div class="form-row"><label>Responsável no escritório</label><select id="n-resp"></select></div>
+    <div class="form-row"><label>Marca envolvida</label><input type="text" id="n-marca" placeholder="MARCA®"></div>
+    <div class="form-row"><label>Responsável</label><select id="n-resp"></select></div>
   </div>
-  <div class="section-divider">Envio e canais</div>
+  <div class="sec-div">Envio</div>
   <div class="form-grid">
     <div class="form-row"><label>Data de envio</label><input type="date" id="n-envio"></div>
-    <div class="form-row"><label>Prazo dado ao notificado (dias)</label><input type="number" id="n-prazo" min="1" value="10"></div>
+    <div class="form-row"><label>Prazo dado (dias)</label><input type="number" id="n-prazo" min="1" value="10"></div>
   </div>
-  <div class="form-row"><label>Canais utilizados (selecione todos)</label>
+  <div class="form-row"><label>Canais</label>
     <div class="channels-grid">
-      <label class="ch-check" id="ch-email" onclick="toggleCh(this)"><input type="checkbox" value="E-mail"><i class="ti ti-mail"></i>E-mail</label>
-      <label class="ch-check" id="ch-whats" onclick="toggleCh(this)"><input type="checkbox" value="WhatsApp"><i class="ti ti-brand-whatsapp"></i>WhatsApp</label>
-      <label class="ch-check" id="ch-correio" onclick="toggleCh(this)"><input type="checkbox" value="Correios AR"><i class="ti ti-mail-forward"></i>Correios AR</label>
-      <label class="ch-check" id="ch-cartorio" onclick="toggleCh(this)"><input type="checkbox" value="Cartório"><i class="ti ti-building"></i>Cartório</label>
-      <label class="ch-check" id="ch-presencial" onclick="toggleCh(this)"><input type="checkbox" value="Presencial"><i class="ti ti-user-check"></i>Presencial</label>
+      <label class="ch-check" id="nch-email" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-mail"></i>E-mail</label>
+      <label class="ch-check" id="nch-whats" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-brand-whatsapp"></i>WhatsApp</label>
+      <label class="ch-check" id="nch-correio" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-mail-forward"></i>Correios AR</label>
+      <label class="ch-check" id="nch-cartorio" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-building"></i>Cartório</label>
+      <label class="ch-check" id="nch-presencial" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-user-check"></i>Presencial</label>
     </div>
   </div>
-  <div class="section-divider">Observações</div>
-  <div class="form-row"><label>Detalhes da infração / observações</label><textarea id="n-obs" placeholder="Número do processo, descrição da infração, documentos anexos…"></textarea></div>
+  <div class="form-row"><label>Observações</label><textarea id="n-obs" placeholder="Descrição da infração, documentos…"></textarea></div>
   <div class="modal-footer">
     <button class="btn" onclick="closeModal('notif')">Cancelar</button>
-    <button class="btn primary" onclick="saveNotif()"><i class="ti ti-check"></i> Salvar notificação</button>
+    <button class="btn primary" onclick="saveNotif()"><i class="ti ti-check"></i>Salvar</button>
   </div>
 </div>
 </div>
 
-<!-- MODAL CONTRA-NOTIFICAÇÃO -->
+<!-- MODAL CONTRA -->
 <div class="modal-bg" id="modal-contra">
 <div class="modal wide">
   <h2><i class="ti ti-inbox"></i>Nova contra-notificação</h2>
-  <div class="section-divider">Identificação</div>
+  <div class="sec-div">Identificação</div>
   <div class="form-grid">
     <div class="form-row"><label>Nosso cliente</label><input type="text" id="c-cliente" placeholder="Empresa DEF"></div>
     <div class="form-row"><label>Empresa notificante</label><input type="text" id="c-notificante" placeholder="Grupo GHI"></div>
@@ -421,29 +528,28 @@ td.pc{color:var(--text);font-weight:500}
     <div class="form-row"><label>Marca contestada</label><input type="text" id="c-marca" placeholder="SINAL®"></div>
     <div class="form-row"><label>Responsável</label><select id="c-resp"></select></div>
   </div>
-  <div class="section-divider">Notificação recebida</div>
+  <div class="sec-div">Notificação recebida</div>
   <div class="form-grid">
     <div class="form-row"><label>Recebida em</label><input type="date" id="c-recebida"></div>
-    <div class="form-row"><label>Prazo dado pelo notificante (dias)</label><input type="number" id="c-prazo-recebido" min="1" value="15" placeholder="Dias para defesa"></div>
+    <div class="form-row"><label>Prazo p/ defesa (dias)</label><input type="number" id="c-prazo-rec" min="1" value="15"></div>
   </div>
-  <div class="section-divider">Nossa contra-notificação</div>
+  <div class="sec-div">Nossa resposta</div>
   <div class="form-grid">
     <div class="form-row"><label>Contra-notif. enviada em</label><input type="date" id="c-enviada"></div>
     <div class="form-row"><label>Aguardar retorno por (dias)</label><input type="number" id="c-alerta" min="1" value="15"></div>
   </div>
-  <div class="form-row"><label>Canais de envio</label>
+  <div class="form-row"><label>Canais</label>
     <div class="channels-grid">
-      <label class="ch-check" id="cc-email" onclick="toggleCh(this)"><input type="checkbox" value="E-mail"><i class="ti ti-mail"></i>E-mail</label>
-      <label class="ch-check" id="cc-whats" onclick="toggleCh(this)"><input type="checkbox" value="WhatsApp"><i class="ti ti-brand-whatsapp"></i>WhatsApp</label>
-      <label class="ch-check" id="cc-correio" onclick="toggleCh(this)"><input type="checkbox" value="Correios AR"><i class="ti ti-mail-forward"></i>Correios AR</label>
-      <label class="ch-check" id="cc-cartorio" onclick="toggleCh(this)"><input type="checkbox" value="Cartório"><i class="ti ti-building"></i>Cartório</label>
+      <label class="ch-check" id="cch-email" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-mail"></i>E-mail</label>
+      <label class="ch-check" id="cch-whats" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-brand-whatsapp"></i>WhatsApp</label>
+      <label class="ch-check" id="cch-correio" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-mail-forward"></i>Correios AR</label>
+      <label class="ch-check" id="cch-cartorio" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-building"></i>Cartório</label>
     </div>
   </div>
-  <div class="section-divider">Observações</div>
-  <div class="form-row"><label>Fundamentos da contestação / documentos</label><textarea id="c-obs" placeholder="Argumentos utilizados, documentos anexos…"></textarea></div>
+  <div class="form-row"><label>Observações</label><textarea id="c-obs" placeholder="Fundamentos da contestação…"></textarea></div>
   <div class="modal-footer">
     <button class="btn" onclick="closeModal('contra')">Cancelar</button>
-    <button class="btn primary" onclick="saveContra()"><i class="ti ti-check"></i> Salvar</button>
+    <button class="btn primary" onclick="saveContra()"><i class="ti ti-check"></i>Salvar</button>
   </div>
 </div>
 </div>
@@ -452,11 +558,9 @@ td.pc{color:var(--text);font-weight:500}
 <div class="modal-bg" id="modal-email">
 <div class="modal">
   <h2><i class="ti ti-mail"></i>Registrar e-mail / follow-up</h2>
-  <div class="form-row"><label>Caso vinculado</label><input type="text" id="e-caso" placeholder="Ex: Notif. Empresa ABC vs XYZ"></div>
+  <div class="form-row"><label>Caso vinculado</label><input type="text" id="e-caso" placeholder="Ex: Notif. ABC vs XYZ"></div>
   <div class="form-grid">
-    <div class="form-row"><label>Tipo</label>
-      <select id="e-tipo"><option value="followup">Follow-up</option><option value="cobranca">Cobrança de retorno</option><option value="2anotif">2ª notificação</option></select>
-    </div>
+    <div class="form-row"><label>Tipo</label><select id="e-tipo"><option value="followup">Follow-up</option><option value="cobranca">Cobrança</option><option value="2anotif">2ª notificação</option></select></div>
     <div class="form-row"><label>Quem enviou</label><select id="e-quem"></select></div>
   </div>
   <div class="form-grid">
@@ -464,11 +568,11 @@ td.pc{color:var(--text);font-weight:500}
     <div class="form-row"><label>Horário</label><input type="time" id="e-hora"></div>
   </div>
   <div class="form-row"><label>Destinatário</label><input type="text" id="e-dest" placeholder="contato@empresa.com.br"></div>
-  <div class="form-row"><label>Visualizado por</label><input type="text" id="e-viu" placeholder="Ex: Ana, Bruno"></div>
-  <div class="form-row"><label>Observações</label><textarea id="e-obs" placeholder="Resumo do conteúdo ou resposta recebida…"></textarea></div>
+  <div class="form-row"><label>Visualizado por</label><input type="text" id="e-viu" placeholder="Ana, Bruno"></div>
+  <div class="form-row"><label>Observações</label><textarea id="e-obs"></textarea></div>
   <div class="modal-footer">
     <button class="btn" onclick="closeModal('email')">Cancelar</button>
-    <button class="btn primary" onclick="saveEmail()"><i class="ti ti-check"></i> Salvar</button>
+    <button class="btn primary" onclick="saveEmail()"><i class="ti ti-check"></i>Salvar</button>
   </div>
 </div>
 </div>
@@ -478,37 +582,16 @@ td.pc{color:var(--text);font-weight:500}
 <div class="modal">
   <h2><i class="ti ti-user-plus"></i>Novo usuário</h2>
   <div class="form-grid">
-    <div class="form-row"><label>Nome completo</label><input type="text" id="u-nome" placeholder="Ana Silva"></div>
-    <div class="form-row"><label>Nome de usuário</label><input type="text" id="u-user" placeholder="ana.silva"></div>
+    <div class="form-row"><label>Nome completo</label><input type="text" id="u-nome"></div>
+    <div class="form-row"><label>Usuário</label><input type="text" id="u-user"></div>
   </div>
   <div class="form-grid">
-    <div class="form-row"><label>Senha inicial</label><input type="text" id="u-pass" placeholder="senha123"></div>
-    <div class="form-row"><label>Perfil</label><select id="u-role"><option value="user">Usuário</option><option value="admin">Administrador</option></select></div>
+    <div class="form-row"><label>Senha</label><input type="text" id="u-pass"></div>
+    <div class="form-row"><label>Perfil</label><select id="u-role"><option value="user">Usuário</option><option value="admin">Admin</option></select></div>
   </div>
   <div class="modal-footer">
     <button class="btn" onclick="closeModal('usuario')">Cancelar</button>
-    <button class="btn primary" onclick="saveUsuario()"><i class="ti ti-check"></i> Criar usuário</button>
-  </div>
-</div>
-</div>
-
-<!-- MODAL STATUS -->
-<div class="modal-bg" id="modal-status">
-<div class="modal">
-  <h2><i class="ti ti-settings"></i>Atualizar status do caso</h2>
-  <div class="form-row"><label>Novo status</label>
-    <select id="st-status">
-      <option value="respondido">Resolvido / Respondido</option>
-      <option value="arquivado">Arquivado</option>
-      <option value="standby">Stand-by (aguardando)</option>
-    </select>
-  </div>
-  <div class="form-row"><label>Data de conclusão / atualização</label><input type="date" id="st-data"></div>
-  <div class="form-row"><label>Observação (opcional)</label><textarea id="st-obs" placeholder="Descreva o desfecho ou motivo do arquivamento…"></textarea></div>
-  <div id="st-meta" style="display:none"></div>
-  <div class="modal-footer">
-    <button class="btn" onclick="closeModal('status')">Cancelar</button>
-    <button class="btn primary" onclick="confirmStatus()"><i class="ti ti-check"></i> Confirmar</button>
+    <button class="btn primary" onclick="saveUsuario()"><i class="ti ti-check"></i>Criar</button>
   </div>
 </div>
 </div>
@@ -518,126 +601,226 @@ td.pc{color:var(--text);font-weight:500}
 <div class="modal wide" id="detailContent"></div>
 </div>
 
+<!-- MODAL MÉTRICA DRILL-DOWN -->
+<div class="modal-bg" id="modal-metric">
+<div class="modal wide">
+  <h2 id="metricModalTitle"><i class="ti ti-list"></i>Casos</h2>
+  <div id="metricModalContent"></div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('metric')">Fechar</button></div>
+</div>
+</div>
+
 <script>
-const DB_KEY='doobay_notif_v2';
+const DB_KEY='doobay_v3';
 let currentUser=null;
-let statusTarget=null;
+let kanbanType='notif';
+let dragItem=null;
+let calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),calSelected=null;
+let bellOpen=false;
+
+const MONTHS_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const MONTHS_SHORT=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+const KANBAN_COLS=[
+  {id:'cadastrada',label:'Cadastrada',cls:'col-cadastrada'},
+  {id:'enviada',label:'Enviada',cls:'col-enviada'},
+  {id:'aguardando',label:'Aguardando Resposta',cls:'col-aguardando'},
+  {id:'respondida',label:'Respondida',cls:'col-respondida'},
+  {id:'resolvida',label:'Resolvida ✓',cls:'col-resolvida'},
+  {id:'standby',label:'Stand-by',cls:'col-standby'},
+  {id:'ag-cliente',label:'Ag. Cliente',cls:'col-ag-cliente'},
+  {id:'judicial',label:'Ag. Judicial',cls:'col-judicial'},
+  {id:'arquivada',label:'Arquivada',cls:'col-arquivada'},
+];
+
+const STATUS_LABELS={
+  cadastrada:'Cadastrada',enviada:'Enviada',aguardando:'Aguardando',
+  respondida:'Respondida',resolvida:'Resolvida',standby:'Stand-by',
+  arquivada:'Arquivada','ag-cliente':'Ag. Cliente',judicial:'Ag. Judicial'
+};
 
 function loadDB(){try{return JSON.parse(localStorage.getItem(DB_KEY))||initDB();}catch(e){return initDB();}}
 function initDB(){const db={users:[{id:'u1',nome:'Administrador',user:'admin',pass:'doobay2024',role:'admin',criado:new Date().toISOString()}],notifs:[],contras:[],emails:[]};saveDB(db);return db;}
 function saveDB(db){localStorage.setItem(DB_KEY,JSON.stringify(db));}
 function getDB(){return loadDB();}
 
+// AUTH
 document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 document.getElementById('loginUser').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-
 function doLogin(){
   const user=document.getElementById('loginUser').value.trim();
   const pass=document.getElementById('loginPass').value;
-  if(!user||!pass){showLoginError('Preencha usuário e senha.');return;}
+  if(!user||!pass){showErr('Preencha usuário e senha.');return;}
   const db=getDB();
   const found=db.users.find(u=>u.user===user&&u.pass===pass);
-  if(!found){showLoginError('Usuário ou senha incorretos.');return;}
-  currentUser=found;
-  sessionStorage.setItem('dn_session',JSON.stringify(found));
-  startApp();
+  if(!found){showErr('Usuário ou senha incorretos.');return;}
+  currentUser=found;sessionStorage.setItem('dn_s',JSON.stringify(found));startApp();
 }
-function showLoginError(msg){const e=document.getElementById('loginError');e.textContent=msg;e.classList.add('show');}
+function showErr(m){const e=document.getElementById('loginErr');e.textContent=m;e.classList.add('show');}
 function doLogout(){currentUser=null;sessionStorage.clear();document.getElementById('app').style.display='none';document.getElementById('loginScreen').style.display='flex';document.getElementById('loginPass').value='';}
-
 function startApp(){
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('app').style.display='block';
-  const initials=currentUser.nome.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
-  document.getElementById('sidebarAvatar').textContent=initials;
+  const ini=currentUser.nome.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  document.getElementById('sidebarAvatar').textContent=ini;
   document.getElementById('sidebarName').textContent=currentUser.nome;
   document.getElementById('sidebarRole').textContent=currentUser.role==='admin'?'Administrador':'Usuário';
+  document.getElementById('topbarUser').textContent=currentUser.nome;
   if(currentUser.role==='admin')document.getElementById('nav-usuarios').style.display='flex';
-  populateResponsaveis();
+  populateResponsaveis();populateMetricFilters();
   showPage('painel');
+  setInterval(checkAlerts,60000);checkAlerts();
 }
+window.addEventListener('DOMContentLoaded',()=>{const s=sessionStorage.getItem('dn_s');if(s){try{currentUser=JSON.parse(s);startApp();}catch(e){}}});
 
-window.addEventListener('DOMContentLoaded',()=>{
-  const sess=sessionStorage.getItem('dn_session');
-  if(sess){try{currentUser=JSON.parse(sess);startApp();}catch(e){}}
-});
-
+// NAV
 function showPage(p){
-  ['painel','calendario','notificacoes','contra','emails','usuarios'].forEach(id=>{
-    const el=document.getElementById('page-'+id);
-    if(el)el.style.display=id===p?'block':'none';
-    const nav=document.getElementById('nav-'+id);
-    if(nav)nav.classList.toggle('active',id===p);
+  ['painel','kanban','notificacoes','contra','emails','calendario','usuarios'].forEach(id=>{
+    const el=document.getElementById('page-'+id);if(el)el.style.display=id===p?'block':'none';
+    const nav=document.getElementById('nav-'+id);if(nav)nav.classList.toggle('active',id===p);
   });
-  if(p==='painel')renderPainel();
-  if(p==='calendario')renderCalendario();
+  const titles={painel:'Painel geral',kanban:'Kanban de casos',notificacoes:'Notificações',contra:'Contra-notificações',emails:'E-mails / follow-up',calendario:'Calendário',usuarios:'Usuários'};
+  document.getElementById('topbarTitle').textContent=titles[p]||p;
+  if(p==='painel'){renderPainel();}
+  if(p==='kanban'){renderKanban();}
   if(p==='notificacoes')renderNotif();
   if(p==='contra')renderContra();
   if(p==='emails')renderEmails();
+  if(p==='calendario')renderCalendario();
   if(p==='usuarios')renderUsers();
+  if(bellOpen){document.getElementById('notifPanel').classList.remove('open');bellOpen=false;}
 }
 
+// HELPERS
 function today(){return new Date().toISOString().slice(0,10);}
 function fmtDate(d){if(!d)return'—';const p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
-function fmtDateTime(iso){if(!iso)return'—';const d=new Date(iso);return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
+function fmtDT(iso){if(!iso)return'—';const d=new Date(iso);return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
-function addDays(dateStr,days){const d=new Date(dateStr);d.setDate(d.getDate()+parseInt(days));return d.toISOString().slice(0,10);}
-function diasRestantes(envio,prazo){const venc=new Date(addDays(envio,prazo));return Math.ceil((venc-new Date())/(1000*60*60*24));}
-
-function statusNotif(n){
-  if(['respondido','arquivado','standby'].includes(n.status))return{label:n.status==='respondido'?'Respondido':n.status==='arquivado'?'Arquivado':'Stand-by',cls:n.status};
-  const d=diasRestantes(n.envio,n.prazo);
-  if(d<0)return{label:'Vencido há '+Math.abs(d)+'d',cls:'vencido'};
-  if(d<=3)return{label:'Urgente — '+d+'d',cls:'urgente'};
-  return{label:'Aguardando — '+d+'d',cls:'aguardando'};
-}
-function statusContra(c){
-  if(['respondido','arquivado','standby'].includes(c.status))return{label:c.status==='respondido'?'Encerrado':c.status==='arquivado'?'Arquivado':'Stand-by',cls:c.status};
-  if(!c.enviada)return{label:'Aguarda envio',cls:'urgente'};
-  const d=diasRestantes(c.enviada,c.alerta);
-  if(d<0)return{label:'Sem retorno '+Math.abs(d)+'d',cls:'vencido'};
-  if(d<=3)return{label:'Alerta em '+d+'d',cls:'urgente'};
-  return{label:'Aguardando',cls:'aguardando'};
-}
-
-function getChannels(prefix){
-  const checks=document.querySelectorAll('.ch-check');
-  const vals=[];
-  document.querySelectorAll(`#${prefix}-email, #${prefix}-whats, #${prefix}-correio, #${prefix}-cartorio, #${prefix}-presencial`).forEach(el=>{
-    if(el&&el.classList.contains('selected')){vals.push(el.querySelector('input').value);}
-  });
-  return vals;
-}
+function addDays(ds,n){const d=new Date(ds);d.setDate(d.getDate()+parseInt(n));return d.toISOString().slice(0,10);}
+function diasR(envio,prazo){return Math.ceil((new Date(addDays(envio,prazo))-new Date())/(864e5));}
 function toggleCh(el){el.classList.toggle('selected');}
-function resetChannels(){document.querySelectorAll('.ch-check').forEach(el=>el.classList.remove('selected'));}
+function resetChannels(prefix){document.querySelectorAll(`[id^="${prefix}"]`).forEach(el=>{if(el.classList.contains('ch-check'))el.classList.remove('selected');});}
+
+function getStatusLabel(s){return STATUS_LABELS[s]||s;}
+function badgeCls(s){return s;}
 
 function populateResponsaveis(){
   const db=getDB();
-  const names=db.users.map(u=>`<option value="${u.nome}">${u.nome}</option>`).join('');
-  ['n-resp','c-resp','e-quem'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=names;});
+  const opts=db.users.map(u=>`<option value="${u.nome}">${u.nome}</option>`).join('');
+  ['n-resp','c-resp','e-quem'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
+}
+
+function populateMetricFilters(){
+  const db=getDB();
+  const years=new Set();const months=new Set();
+  [...db.notifs,...db.contras].forEach(i=>{
+    const d=new Date(i.criado);years.add(d.getFullYear());months.add(d.getMonth());
+  });
+  const my=document.getElementById('metricYear');
+  const mm=document.getElementById('metricMonth');
+  my.innerHTML='<option value="">Todos os anos</option>'+[...years].sort().map(y=>`<option value="${y}">${y}</option>`).join('');
+  mm.innerHTML='<option value="">Todos os meses</option>'+MONTHS_PT.map((m,i)=>`<option value="${i}">${m}</option>`).join('');
+}
+
+// ALERTS
+function checkAlerts(){
+  const db=getDB();const alerts=[];
+  db.notifs.forEach(n=>{
+    if(['resolvida','arquivada','judicial'].includes(n.status))return;
+    if(!n.envio||!n.prazo)return;
+    const d=diasR(n.envio,n.prazo);
+    if(d<0)alerts.push({tipo:'Notificação',label:n.cliente+' × '+n.notificado,msg:'Prazo vencido há '+Math.abs(d)+'d. Defina um status ou crie 2ª notificação.',color:'var(--danger)',id:n.id});
+    else if(d<=3)alerts.push({tipo:'Notificação',label:n.cliente+' × '+n.notificado,msg:'Prazo vence em '+d+'d.',color:'var(--warning)',id:n.id});
+  });
+  db.contras.forEach(c=>{
+    if(['resolvida','arquivada'].includes(c.status))return;
+    if(c.enviada&&c.alerta){
+      const d=diasR(c.enviada,c.alerta);
+      if(d<0)alerts.push({tipo:'Contra-notif.',label:c.cliente+' vs '+c.notificante,msg:'Sem retorno há '+Math.abs(d)+'d. Verifique o andamento.',color:'var(--danger)',id:c.id});
+      else if(d<=3)alerts.push({tipo:'Contra-notif.',label:c.cliente+' vs '+c.notificante,msg:'Alerta de retorno em '+d+'d.',color:'var(--warning)',id:c.id});
+    }
+  });
+  const badge=document.getElementById('bellBadge');
+  if(alerts.length>0){badge.textContent=alerts.length;badge.classList.remove('hidden');}
+  else badge.classList.add('hidden');
+  const list=document.getElementById('notifList');
+  if(alerts.length===0){list.innerHTML='<div class="no-notifs"><i class="ti ti-check" style="font-size:22px;display:block;margin-bottom:6px;opacity:.4"></i>Nenhum alerta pendente</div>';return;}
+  list.innerHTML=alerts.map(a=>`
+    <div class="notif-item">
+      <div class="notif-item-head">
+        <div class="notif-dot" style="background:${a.color}"></div>
+        <div>
+          <div class="notif-item-title">${a.tipo} — ${a.label}</div>
+          <div class="notif-item-sub">${a.msg}</div>
+          <div class="notif-item-action">→ Atualizar status</div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleBell(){
+  bellOpen=!bellOpen;
+  document.getElementById('notifPanel').classList.toggle('open',bellOpen);
+}
+function markAllRead(){document.getElementById('notifPanel').classList.remove('open');bellOpen=false;}
+document.addEventListener('click',e=>{if(bellOpen&&!document.getElementById('bellBtn').contains(e.target)&&!document.getElementById('notifPanel').contains(e.target)){document.getElementById('notifPanel').classList.remove('open');bellOpen=false;}});
+
+// PAINEL
+function getFilteredItems(){
+  const db=getDB();
+  const month=document.getElementById('metricMonth').value;
+  const year=document.getElementById('metricYear').value;
+  function matches(item){
+    const d=new Date(item.criado);
+    if(year&&d.getFullYear()!=year)return false;
+    if(month!==''&&d.getMonth()!=month)return false;
+    return true;
+  }
+  return{notifs:db.notifs.filter(matches),contras:db.contras.filter(matches)};
 }
 
 function renderPainel(){
-  const db=getDB();
-  const active=db.notifs.filter(n=>!['respondido','arquivado'].includes(n.status));
-  const vencidos=active.filter(n=>diasRestantes(n.envio,n.prazo)<0).length;
-  const urgentes=active.filter(n=>{const d=diasRestantes(n.envio,n.prazo);return d>=0&&d<=3;}).length;
-  const semRetorno=db.contras.filter(c=>!['respondido','arquivado'].includes(c.status)&&c.enviada&&diasRestantes(c.enviada,c.alerta)<0).length;
-  const total=db.notifs.length+db.contras.length;
+  const {notifs,contras}=getFilteredItems();
+  const active=notifs.filter(n=>!['resolvida','arquivada'].includes(n.status));
+  const vencidos=active.filter(n=>n.envio&&n.prazo&&diasR(n.envio,n.prazo)<0).length;
+  const urgentes=active.filter(n=>{if(!n.envio||!n.prazo)return false;const d=diasR(n.envio,n.prazo);return d>=0&&d<=3;}).length;
+  const semRet=contras.filter(c=>!['resolvida','arquivada'].includes(c.status)&&c.enviada&&c.alerta&&diasR(c.enviada,c.alerta)<0).length;
+
   document.getElementById('metricsGrid').innerHTML=`
-    <div class="metric-card"><div class="metric-label">Total de casos</div><div class="metric-val accent">${total}</div><div class="metric-sub">${db.notifs.length} notif. + ${db.contras.length} contra-notif.</div></div>
-    <div class="metric-card"><div class="metric-label">Notif. vencidas</div><div class="metric-val ${vencidos>0?'danger':'success'}">${vencidos}</div><div class="metric-sub">Prazo expirado sem resposta</div></div>
-    <div class="metric-card"><div class="metric-label">Prazos urgentes</div><div class="metric-val ${urgentes>0?'warning':'success'}">${urgentes}</div><div class="metric-sub">Vencem em até 3 dias</div></div>
-    <div class="metric-card"><div class="metric-label">Contra-notif. sem retorno</div><div class="metric-val ${semRetorno>0?'danger':'success'}">${semRetorno}</div><div class="metric-sub">Além do prazo de alerta</div></div>`;
-  const ta=vencidos+urgentes+semRetorno;
+    <div class="metric-card" onclick="openMetric('notifs',${JSON.stringify(notifs).replace(/"/g,'&quot;')})">
+      <div class="metric-label">Total notificações</div>
+      <div class="metric-val accent">${notifs.length}</div>
+      <div class="metric-sub">Clique para ver casos</div>
+    </div>
+    <div class="metric-card" onclick="openMetric('contras',${JSON.stringify(contras).replace(/"/g,'&quot;')})">
+      <div class="metric-label">Contra-notificações</div>
+      <div class="metric-val accent">${contras.length}</div>
+      <div class="metric-sub">Clique para ver casos</div>
+    </div>
+    <div class="metric-card" onclick="openMetric('vencidos')">
+      <div class="metric-label">Prazos vencidos</div>
+      <div class="metric-val ${vencidos>0?'danger':'success'}">${vencidos}</div>
+      <div class="metric-sub">Requerem ação imediata</div>
+    </div>
+    <div class="metric-card" onclick="openMetric('urgentes')">
+      <div class="metric-label">Urgentes (≤3d)</div>
+      <div class="metric-val ${urgentes>0?'warning':'success'}">${urgentes}</div>
+      <div class="metric-sub">Vencem em breve</div>
+    </div>`;
+
+  const ta=vencidos+urgentes+semRet;
   const b=document.getElementById('alertBanner');
-  if(ta>0){document.getElementById('alertText').textContent=ta+' item(s) precisam de atenção.';b.classList.add('show');}else b.classList.remove('show');
+  if(ta>0){document.getElementById('alertText').textContent=ta+' item(s) precisam de atenção. Verifique o sininho ↗';b.classList.add('show');}
+  else b.classList.remove('show');
+
+  const db=getDB();
   const crit=[
-    ...db.notifs.filter(n=>!['respondido','arquivado','standby'].includes(n.status)&&diasRestantes(n.envio,n.prazo)<=7).map(n=>({tipo:'Notificação',label:n.cliente+' × '+n.notificado,marca:n.marca,d:diasRestantes(n.envio,n.prazo),resp:n.resp})),
-    ...db.contras.filter(c=>!['respondido','arquivado','standby'].includes(c.status)&&c.enviada&&diasRestantes(c.enviada,c.alerta)<=7).map(c=>({tipo:'Contra-notif.',label:c.cliente+' vs '+c.notificante,marca:c.marca,d:diasRestantes(c.enviada,c.alerta),resp:c.resp}))
+    ...db.notifs.filter(n=>!['resolvida','arquivada','standby'].includes(n.status)&&n.envio&&n.prazo&&diasR(n.envio,n.prazo)<=7).map(n=>({tipo:'Notificação',label:n.cliente+' × '+n.notificado,marca:n.marca,d:diasR(n.envio,n.prazo),resp:n.resp})),
+    ...db.contras.filter(c=>!['resolvida','arquivada','standby'].includes(c.status)&&c.enviada&&c.alerta&&diasR(c.enviada,c.alerta)<=7).map(c=>({tipo:'Contra-notif.',label:c.cliente+' vs '+c.notificante,marca:c.marca,d:diasR(c.enviada,c.alerta),resp:c.resp}))
   ].sort((a,b)=>a.d-b.d);
+
   const cl=document.getElementById('criticalList');
-  if(crit.length===0){cl.innerHTML='<div class="empty-state"><i class="ti ti-circle-check"></i>Nenhum prazo crítico nos próximos 7 dias</div>';return;}
+  if(!crit.length){cl.innerHTML='<div class="empty-state"><i class="ti ti-circle-check"></i>Nenhum prazo crítico nos próximos 7 dias</div>';return;}
   cl.innerHTML=crit.map(c=>{
     const cls=c.d<0?'vencido':c.d<=3?'urgente':'ok';
     const lbl=c.d<0?'Venceu há '+Math.abs(c.d)+'d':c.d===0?'Vence hoje':'Vence em '+c.d+'d';
@@ -646,108 +829,102 @@ function renderPainel(){
   }).join('');
 }
 
-// ---- CALENDAR ----
-let calYear=new Date().getFullYear();
-let calMonth=new Date().getMonth();
-let calSelected=null;
-const MONTHS=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-const DOWS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-
-function getCalEvents(){
+// METRIC DRILL-DOWN
+function openMetric(type, items){
   const db=getDB();
-  const events={};
-  function addEv(dateStr,item){if(!dateStr)return;if(!events[dateStr])events[dateStr]=[];events[dateStr].push(item);}
-  db.notifs.forEach(n=>{
-    if(['arquivado'].includes(n.status))return;
-    const venc=addDays(n.envio,n.prazo);
-    addEv(venc,{tipo:'Notificação',label:n.cliente+' × '+n.notificado,marca:n.marca,status:statusNotif(n),resp:n.resp,venc});
-  });
-  db.contras.forEach(c=>{
-    if(['arquivado'].includes(c.status))return;
-    if(c.enviada){
-      const alerta=addDays(c.enviada,c.alerta);
-      addEv(alerta,{tipo:'Contra-notif.',label:c.cliente+' vs '+c.notificante,marca:c.marca,status:statusContra(c),resp:c.resp,venc:alerta});
-    }
-    if(c.recebida&&c.prazoRecebido){
-      const lim=addDays(c.recebida,c.prazoRecebido);
-      addEv(lim,{tipo:'Prazo defesa',label:c.cliente+' (limite notificante)',marca:c.marca,status:{label:'Limite',cls:'urgente'},resp:c.resp,venc:lim});
-    }
-  });
-  return events;
+  let rows=[];let title='';
+  if(type==='notifs'){rows=items||db.notifs;title='Notificações';}
+  else if(type==='contras'){rows=items||db.contras;title='Contra-notificações';}
+  else if(type==='vencidos'){rows=db.notifs.filter(n=>!['resolvida','arquivada'].includes(n.status)&&n.envio&&n.prazo&&diasR(n.envio,n.prazo)<0);title='Notificações vencidas';}
+  else if(type==='urgentes'){rows=db.notifs.filter(n=>!['resolvida','arquivada'].includes(n.status)&&n.envio&&n.prazo&&diasR(n.envio,n.prazo)>=0&&diasR(n.envio,n.prazo)<=3);title='Notificações urgentes';}
+  document.getElementById('metricModalTitle').innerHTML=`<i class="ti ti-list" style="color:var(--accent)"></i>${title} (${rows.length})`;
+  if(!rows.length){document.getElementById('metricModalContent').innerHTML='<div class="empty-state"><i class="ti ti-search-off"></i>Nenhum caso encontrado neste período</div>';}
+  else{
+    document.getElementById('metricModalContent').innerHTML=`<table><thead><tr><th>Cliente</th><th>${type==='contras'?'Notificante':'Notificado'}</th><th>Marca</th><th>Data</th><th>Status</th><th>Resp.</th></tr></thead><tbody>`+
+    rows.map(n=>`<tr><td class="pc">${n.cliente||n.cliente}</td><td>${n.notificado||n.notificante||'—'}</td><td>${n.marca||'—'}</td><td>${fmtDate((n.criado||'').slice(0,10))}</td><td><span class="badge ${badgeCls(n.status)}">${getStatusLabel(n.status)}</span></td><td>${n.resp||'—'}</td></tr>`).join('')+'</tbody></table>';
+  }
+  document.getElementById('modal-metric').classList.add('open');
 }
 
-function renderCalendario(){
-  const events=getCalEvents();
-  document.getElementById('calMonthLabel').textContent=MONTHS[calMonth]+' '+calYear;
-  const grid=document.getElementById('calGrid');
-  let html=DOWS.map(d=>`<div class="cal-dow">${d}</div>`).join('');
-  const first=new Date(calYear,calMonth,1).getDay();
-  const days=new Date(calYear,calMonth+1,0).getDate();
-  const todayStr=today();
-  for(let i=0;i<first;i++){
-    const prevDate=new Date(calYear,calMonth,-(first-1-i));
-    html+=`<div class="cal-day other-month"><span class="cal-day-num">${prevDate.getDate()}</span><div class="dot-ind"></div></div>`;
-  }
-  for(let d=1;d<=days;d++){
-    const ds=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-    const hasEv=!!events[ds];
-    const isToday=ds===todayStr;
-    const isSel=ds===calSelected;
-    html+=`<div class="cal-day${isToday?' today':''}${hasEv?' has-events':''}${isSel?' selected':''}" onclick="calSelectDay('${ds}')"><span class="cal-day-num">${d}</span><div class="dot-ind"></div></div>`;
-  }
-  grid.innerHTML=html;
-  renderMonthSummary(events);
-  if(calSelected)renderDayEvents(calSelected,events);
+// KANBAN
+function switchKanban(type,btn){
+  kanbanType=type;
+  document.querySelectorAll('.kanban-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderKanban();
 }
 
-function calSelectDay(ds){
-  calSelected=ds;
-  renderCalendario();
-  renderDayEvents(ds,getCalEvents());
-}
-
-function renderDayEvents(ds,events){
-  const panel=document.getElementById('dayEventsPanel');
-  const parts=ds.split('-');
-  const label=parts[2]+'/'+parts[1]+'/'+parts[0];
-  const evs=events[ds]||[];
-  if(evs.length===0){
-    panel.innerHTML=`<div class="day-events-title">${label} — nenhum prazo</div>`;
-    return;
-  }
-  panel.innerHTML=`<div class="day-events-title">${label} — ${evs.length} prazo(s)</div>`+
-  evs.map(e=>{
-    const dot=e.status.cls==='vencido'?'red':e.status.cls==='urgente'?'amber':'green';
-    return`<div class="day-event-item"><div class="day-event-dot" style="background:var(--${dot==='red'?'danger':dot==='amber'?'warning':'success'})"></div><div class="day-event-body"><div class="day-event-title">${e.tipo} — ${e.label}</div><div class="day-event-sub">Marca: ${e.marca||'—'} · <span class="badge ${e.status.cls}" style="font-size:10px">${e.status.label}</span></div></div></div>`;
+function renderKanban(){
+  const db=getDB();
+  const items=kanbanType==='notif'?db.notifs:db.contras;
+  const board=document.getElementById('kanbanBoard');
+  board.innerHTML=KANBAN_COLS.map(col=>{
+    const colItems=items.filter(i=>i.status===col.id);
+    return`<div class="kanban-col ${col.cls}">
+      <div class="kanban-col-head">
+        <span class="kanban-col-title">${col.label}</span>
+        <span class="kanban-col-count">${colItems.length}</span>
+      </div>
+      <div class="kanban-col-body" data-col="${col.id}"
+        ondragover="e=>{e.preventDefault();this.classList.add('drag-over')}"
+        ondragleave="this.classList.remove('drag-over')"
+        ondrop="dropCard(event,'${col.id}')">
+        ${colItems.map((item,i)=>renderKCard(item,items.indexOf(item))).join('')}
+      </div>
+    </div>`;
   }).join('');
 }
 
-function renderMonthSummary(events){
-  const el=document.getElementById('monthSummary');
-  const total=Object.values(events).flat().length;
-  const venc=Object.values(events).flat().filter(e=>e.status.cls==='vencido').length;
-  const urg=Object.values(events).flat().filter(e=>e.status.cls==='urgente').length;
-  el.innerHTML=`
-    <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
-      <div style="display:flex;justify-content:space-between"><span style="color:var(--text2)">Total de prazos</span><span style="font-weight:500;color:var(--text)">${total}</span></div>
-      <div style="display:flex;justify-content:space-between"><span style="color:var(--text2)">Vencidos</span><span style="font-weight:500;color:var(--danger)">${venc}</span></div>
-      <div style="display:flex;justify-content:space-between"><span style="color:var(--text2)">Urgentes</span><span style="font-weight:500;color:var(--warning)">${urg}</span></div>
-    </div>`;
+function renderKCard(item,idx){
+  const isNotif=kanbanType==='notif';
+  let urgLabel='',urgCls='gray';
+  if(item.envio&&item.prazo&&!['resolvida','arquivada','standby','judicial'].includes(item.status)){
+    const d=diasR(item.envio,item.prazo);
+    if(d<0){urgLabel='Vencido '+Math.abs(d)+'d';urgCls='red';}
+    else if(d<=3){urgLabel='Vence em '+d+'d';urgCls='amber';}
+    else{urgLabel=d+'d restantes';urgCls='green';}
+  }
+  const title=isNotif?(item.cliente+' × '+item.notificado):(item.cliente+' vs '+item.notificante);
+  return`<div class="kcard" draggable="true"
+    ondragstart="dragCard(event,${idx})"
+    ondragend="this.classList.remove('dragging')">
+    <div class="kcard-type">${isNotif?'Notificação':'Contra-notif.'}</div>
+    <div class="kcard-title">${title}</div>
+    <div class="kcard-sub">${item.marca||'—'} · ${item.resp||'—'}</div>
+    <div class="kcard-footer">
+      <span class="kcard-date">${fmtDate(item.envio||item.recebida||'')}</span>
+      ${urgLabel?`<span class="kcard-urgency ${urgCls}">${urgLabel}</span>`:''}
+    </div>
+    <div class="kcard-actions">
+      <button class="btn sm icon-only" onclick="isNotif=kanbanType==='notif';isNotif?detailNotif(${idx}):detailContra(${idx})" title="Detalhes"><i class="ti ti-eye"></i></button>
+      <select class="filter-select" style="height:24px;font-size:11px;padding:2px 6px;flex:1" onchange="moveCard(${idx},this.value)">
+        ${KANBAN_COLS.map(c=>`<option value="${c.id}"${item.status===c.id?' selected':''}>${c.label}</option>`).join('')}
+      </select>
+    </div>
+  </div>`;
 }
 
-function calNav(dir){
-  calMonth+=dir;
-  if(calMonth>11){calMonth=0;calYear++;}
-  if(calMonth<0){calMonth=11;calYear--;}
-  renderCalendario();
+function dragCard(e,idx){dragItem=idx;setTimeout(()=>{const el=e.target;if(el)el.classList.add('dragging');},0);}
+function dropCard(e,colId){
+  e.preventDefault();e.currentTarget.classList.remove('drag-over');
+  if(dragItem===null)return;
+  moveCard(dragItem,colId);dragItem=null;
 }
-function calToday(){calYear=new Date().getFullYear();calMonth=new Date().getMonth();calSelected=today();renderCalendario();}
+function moveCard(idx,newStatus){
+  const db=getDB();
+  const arr=kanbanType==='notif'?db.notifs:db.contras;
+  if(!arr[idx])return;
+  arr[idx].status=newStatus;
+  arr[idx].statusPor=currentUser.nome;
+  arr[idx].statusData=today();
+  saveDB(db);renderKanban();checkAlerts();
+}
 
-// ---- NOTIF TABLE ----
+// NOTIF TABLE
 function renderChTags(channels){
   if(!channels||!channels.length)return'—';
-  const icons={Email:'ti-mail',WhatsApp:'ti-brand-whatsapp','Correios AR':'ti-mail-forward','Cartório':'ti-building',Presencial:'ti-user-check','E-mail':'ti-mail'};
-  return channels.map(c=>`<span class="ch-tag"><i class="ti ${icons[c]||'ti-send'}" style="font-size:11px"></i>${c}</span>`).join('');
+  const icons={'E-mail':'ti-mail',WhatsApp:'ti-brand-whatsapp','Correios AR':'ti-mail-forward','Cartório':'ti-building',Presencial:'ti-user-check'};
+  return channels.map(c=>`<span class="ch-tag"><i class="ti ${icons[c]||'ti-send'}" style="font-size:10px"></i>${c}</span>`).join('');
 }
 
 function renderNotif(){
@@ -756,25 +933,25 @@ function renderNotif(){
   const st=document.getElementById('filterStatus').value;
   let rows=db.notifs.filter(n=>{
     if(q&&![n.cliente,n.notificado,n.marca].some(x=>(x||'').toLowerCase().includes(q)))return false;
-    if(st){const s=statusNotif(n);if(st==='respondido'&&n.status!=='respondido')return false;if(st==='arquivado'&&n.status!=='arquivado')return false;if(st==='standby'&&n.status!=='standby')return false;if(st==='vencido'&&(n.status!=='aberto'||diasRestantes(n.envio,n.prazo)>=0))return false;if(st==='urgente'&&(n.status!=='aberto'||diasRestantes(n.envio,n.prazo)<0||diasRestantes(n.envio,n.prazo)>3))return false;if(st==='aguardando'&&(n.status!=='aberto'||diasRestantes(n.envio,n.prazo)<=3))return false;}
+    if(st&&n.status!==st)return false;
     return true;
   });
-  const wrap=document.getElementById('notifTableWrap');
-  if(rows.length===0){wrap.innerHTML='<div class="empty-state"><i class="ti ti-file-off"></i>Nenhuma notificação encontrada</div>';return;}
-  wrap.innerHTML=`<div style="overflow-x:auto"><table><thead><tr><th>Cliente</th><th>Notificado</th><th>Marca</th><th>Envio</th><th>Prazo</th><th>Canais</th><th>Resp.</th><th>Status</th><th>Criado por</th><th></th></tr></thead><tbody>`+
+  const w=document.getElementById('notifTableWrap');
+  if(!rows.length){w.innerHTML='<div class="empty-state"><i class="ti ti-file-off"></i>Nenhuma notificação encontrada</div>';return;}
+  w.innerHTML=`<div style="overflow-x:auto"><table><thead><tr><th>Cliente</th><th>Notificado</th><th>Marca</th><th>Envio</th><th>Prazo</th><th>Canais</th><th>Resp.</th><th>Status</th><th>Por</th><th></th></tr></thead><tbody>`+
   rows.map(n=>{
-    const s=statusNotif(n);const idx=db.notifs.indexOf(n);
+    const idx=db.notifs.indexOf(n);
+    let urgBadge='';
+    if(n.envio&&n.prazo&&!['resolvida','arquivada'].includes(n.status)){const d=diasR(n.envio,n.prazo);if(d<0)urgBadge=`<span class="badge vencido" style="margin-left:4px">Vencido</span>`;else if(d<=3)urgBadge=`<span class="badge urgente" style="margin-left:4px">${d}d</span>`;}
     return`<tr>
       <td class="pc">${n.cliente}</td><td>${n.notificado}</td><td>${n.marca||'—'}</td>
-      <td>${fmtDate(n.envio)}</td><td>${n.prazo}d</td>
-      <td>${renderChTags(n.channels)}</td>
-      <td>${n.resp}</td>
-      <td><span class="badge ${s.cls}">${s.label}</span></td>
+      <td>${fmtDate(n.envio)}</td><td>${n.prazo?n.prazo+'d':'—'}</td>
+      <td>${renderChTags(n.channels)}</td><td>${n.resp}</td>
+      <td><span class="badge ${n.status}">${getStatusLabel(n.status)}</span>${urgBadge}</td>
       <td style="font-size:11px;color:var(--text3)">${n.criadoPor||'—'}</td>
-      <td><div style="display:flex;gap:4px">
+      <td><div style="display:flex;gap:3px">
         <button class="btn sm icon-only" onclick="detailNotif(${idx})" title="Detalhes"><i class="ti ti-eye"></i></button>
-        ${!['respondido','arquivado'].includes(n.status)?`<button class="btn sm icon-only" onclick="openStatus('notif',${idx})" title="Atualizar status" style="color:var(--warning)"><i class="ti ti-settings"></i></button>`:''}
-        ${currentUser.role==='admin'?`<button class="btn sm icon-only" onclick="deleteItem('notif',${idx})" title="Excluir" style="color:var(--danger)"><i class="ti ti-trash"></i></button>`:''}
+        ${currentUser.role==='admin'?`<button class="btn sm icon-only" onclick="deleteItem('notif',${idx})" style="color:var(--danger)"><i class="ti ti-trash"></i></button>`:''}
       </div></td></tr>`;
   }).join('')+'</tbody></table></div>';
 }
@@ -785,27 +962,25 @@ function renderContra(){
   const st=document.getElementById('filterContra').value;
   let rows=db.contras.filter(c=>{
     if(q&&![c.cliente,c.notificante,c.marca].some(x=>(x||'').toLowerCase().includes(q)))return false;
-    if(st){if(st==='respondido'&&c.status!=='respondido')return false;if(st==='arquivado'&&c.status!=='arquivado')return false;if(st==='standby'&&c.status!=='standby')return false;if(st==='aguardando'&&['respondido','arquivado','standby'].includes(c.status))return false;}
+    if(st&&c.status!==st)return false;
     return true;
   });
-  const wrap=document.getElementById('contraTableWrap');
-  if(rows.length===0){wrap.innerHTML='<div class="empty-state"><i class="ti ti-inbox-off"></i>Nenhuma contra-notificação encontrada</div>';return;}
-  wrap.innerHTML=`<div style="overflow-x:auto"><table><thead><tr><th>Cliente</th><th>Notificante</th><th>Marca</th><th>Recebida</th><th>Prazo defesa</th><th>Contra-notif. enviada</th><th>Alerta retorno</th><th>Status</th><th>Criado por</th><th></th></tr></thead><tbody>`+
+  const w=document.getElementById('contraTableWrap');
+  if(!rows.length){w.innerHTML='<div class="empty-state"><i class="ti ti-inbox-off"></i>Nenhuma contra-notificação encontrada</div>';return;}
+  w.innerHTML=`<div style="overflow-x:auto"><table><thead><tr><th>Cliente</th><th>Notificante</th><th>Marca</th><th>Recebida</th><th>Prazo defesa</th><th>Contra-notif.</th><th>Resp.</th><th>Status</th><th></th></tr></thead><tbody>`+
   rows.map(c=>{
-    const s=statusContra(c);const idx=db.contras.indexOf(c);
-    const limiteDefesa=c.recebida&&c.prazoRecebido?fmtDate(addDays(c.recebida,c.prazoRecebido)):'—';
+    const idx=db.contras.indexOf(c);
+    const limDef=c.recebida&&c.prazoRec?fmtDate(addDays(c.recebida,c.prazoRec)):'—';
     return`<tr>
       <td class="pc">${c.cliente}</td><td>${c.notificante}</td><td>${c.marca||'—'}</td>
       <td>${fmtDate(c.recebida)}</td>
-      <td>${limiteDefesa}${c.prazoRecebido?` <span style="font-size:10px;color:var(--text3)">(${c.prazoRecebido}d)</span>`:''}</td>
+      <td>${limDef}${c.prazoRec?` (${c.prazoRec}d)`:''}</td>
       <td>${c.enviada?fmtDate(c.enviada):'<span style="color:var(--warning)">Pendente</span>'}</td>
-      <td>${c.alerta}d após envio</td>
-      <td><span class="badge ${s.cls}">${s.label}</span></td>
-      <td style="font-size:11px;color:var(--text3)">${c.criadoPor||'—'}</td>
-      <td><div style="display:flex;gap:4px">
-        <button class="btn sm icon-only" onclick="detailContra(${idx})" title="Detalhes"><i class="ti ti-eye"></i></button>
-        ${!['respondido','arquivado'].includes(c.status)?`<button class="btn sm icon-only" onclick="openStatus('contra',${idx})" title="Atualizar status" style="color:var(--warning)"><i class="ti ti-settings"></i></button>`:''}
-        ${currentUser.role==='admin'?`<button class="btn sm icon-only" onclick="deleteItem('contra',${idx})" title="Excluir" style="color:var(--danger)"><i class="ti ti-trash"></i></button>`:''}
+      <td>${c.resp}</td>
+      <td><span class="badge ${c.status}">${getStatusLabel(c.status)}</span></td>
+      <td><div style="display:flex;gap:3px">
+        <button class="btn sm icon-only" onclick="detailContra(${idx})"><i class="ti ti-eye"></i></button>
+        ${currentUser.role==='admin'?`<button class="btn sm icon-only" onclick="deleteItem('contra',${idx})" style="color:var(--danger)"><i class="ti ti-trash"></i></button>`:''}
       </div></td></tr>`;
   }).join('')+'</tbody></table></div>';
 }
@@ -814,17 +989,15 @@ function renderEmails(){
   const db=getDB();
   const q=(document.getElementById('searchEmail').value||'').toLowerCase();
   const tp=document.getElementById('filterEmailType').value;
-  const tipos={followup:'Follow-up',cobranca:'Cobrança',['2anotif']:'2ª notificação'};
+  const tipos={followup:'Follow-up',cobranca:'Cobrança','2anotif':'2ª notificação'};
   let rows=db.emails.filter(e=>{
     if(q&&![e.caso,e.dest,e.quem].some(x=>(x||'').toLowerCase().includes(q)))return false;
-    if(tp&&e.tipo!==tp)return false;
-    return true;
+    if(tp&&e.tipo!==tp)return false;return true;
   });
-  const wrap=document.getElementById('emailTableWrap');
-  if(rows.length===0){wrap.innerHTML='<div class="empty-state"><i class="ti ti-mail-off"></i>Nenhum e-mail registrado</div>';return;}
-  wrap.innerHTML=`<table><thead><tr><th>Caso</th><th>Tipo</th><th>Destinatário</th><th>Data / hora</th><th>Enviado por</th><th>Visto por</th><th></th></tr></thead><tbody>`+
-  rows.map(e=>{
-    const idx=db.emails.indexOf(e);
+  const w=document.getElementById('emailTableWrap');
+  if(!rows.length){w.innerHTML='<div class="empty-state"><i class="ti ti-mail-off"></i>Nenhum e-mail registrado</div>';return;}
+  w.innerHTML=`<table><thead><tr><th>Caso</th><th>Tipo</th><th>Destinatário</th><th>Data / hora</th><th>Enviado por</th><th>Visto por</th><th></th></tr></thead><tbody>`+
+  rows.map(e=>{const idx=db.emails.indexOf(e);
     return`<tr><td class="pc">${e.caso}</td><td><span class="badge aguardando">${tipos[e.tipo]||e.tipo}</span></td><td>${e.dest||'—'}</td><td>${fmtDate(e.data)} ${e.hora||''}</td><td>${e.quem}</td><td>${e.viu||'—'}</td>
     <td>${currentUser.role==='admin'?`<button class="btn sm icon-only" onclick="deleteItem('email',${idx})" style="color:var(--danger)"><i class="ti ti-trash"></i></button>`:''}</td></tr>`;
   }).join('')+'</tbody></table>';
@@ -832,60 +1005,88 @@ function renderEmails(){
 
 function renderUsers(){
   const db=getDB();
-  document.getElementById('usersTableWrap').innerHTML=`<table><thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Cadastrado em</th><th></th></tr></thead><tbody>`+
-  db.users.map((u,idx)=>`<tr><td class="pc">${u.nome}</td><td style="font-family:var(--mono);font-size:12px">${u.user}</td><td><span class="badge ${u.role}">${u.role==='admin'?'Admin':'Usuário'}</span></td><td style="font-size:12px;color:var(--text3)">${fmtDateTime(u.criado)}</td>
+  document.getElementById('usersTableWrap').innerHTML=`<table><thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Cadastrado</th><th></th></tr></thead><tbody>`+
+  db.users.map((u,idx)=>`<tr><td class="pc">${u.nome}</td><td style="font-family:var(--mono);font-size:12px">${u.user}</td><td><span class="badge ${u.role}">${u.role==='admin'?'Admin':'Usuário'}</span></td><td style="font-size:12px;color:var(--text3)">${fmtDT(u.criado)}</td>
   <td>${u.user!=='admin'?`<button class="btn sm icon-only" onclick="deleteUser(${idx})" style="color:var(--danger)"><i class="ti ti-user-minus"></i></button>`:''}</td></tr>`).join('')+'</tbody></table>';
 }
 
-// MODAL OPEN/CLOSE
+// CALENDAR
+const MONTHS=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const DOWS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+function getCalEvents(){
+  const db=getDB();const ev={};
+  function add(ds,item){if(!ds)return;if(!ev[ds])ev[ds]=[];ev[ds].push(item);}
+  db.notifs.forEach(n=>{if(['arquivada'].includes(n.status)||!n.envio||!n.prazo)return;add(addDays(n.envio,n.prazo),{tipo:'Notificação',label:n.cliente+' × '+n.notificado,marca:n.marca,status:n.status});});
+  db.contras.forEach(c=>{
+    if(['arquivada'].includes(c.status))return;
+    if(c.enviada&&c.alerta)add(addDays(c.enviada,c.alerta),{tipo:'Contra-notif.',label:c.cliente+' vs '+c.notificante,marca:c.marca,status:c.status});
+    if(c.recebida&&c.prazoRec)add(addDays(c.recebida,c.prazoRec),{tipo:'Prazo defesa',label:c.cliente,marca:c.marca,status:'urgente'});
+  });
+  return ev;
+}
+function renderCalendario(){
+  const ev=getCalEvents();
+  document.getElementById('calMonthLabel').textContent=MONTHS[calMonth]+' '+calYear;
+  const grid=document.getElementById('calGrid');
+  let html=DOWS.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  const first=new Date(calYear,calMonth,1).getDay();
+  const days=new Date(calYear,calMonth+1,0).getDate();
+  const todayStr=today();
+  for(let i=0;i<first;i++)html+=`<div class="cal-day other-month"><span>${new Date(calYear,calMonth,-(first-1-i)).getDate()}</span><div class="dot-ind"></div></div>`;
+  for(let d=1;d<=days;d++){
+    const ds=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const hasEv=!!ev[ds];const isToday=ds===todayStr;const isSel=ds===calSelected;
+    html+=`<div class="cal-day${isToday?' today':''}${hasEv?' has-events':''}${isSel?' selected':''}" onclick="calSelectDay('${ds}')"><span class="cal-day-num">${d}</span><div class="dot-ind"></div></div>`;
+  }
+  grid.innerHTML=html;
+  renderMonthSummary(ev);
+  if(calSelected)renderDayEvents(calSelected,ev);
+}
+function calSelectDay(ds){calSelected=ds;renderCalendario();renderDayEvents(ds,getCalEvents());}
+function renderDayEvents(ds,ev){
+  const panel=document.getElementById('dayEventsPanel');
+  const p=ds.split('-');const label=p[2]+'/'+p[1]+'/'+p[0];
+  const evs=ev[ds]||[];
+  if(!evs.length){panel.innerHTML=`<div class="day-events-title">${label} — nenhum prazo</div>`;return;}
+  panel.innerHTML=`<div class="day-events-title">${label} — ${evs.length} prazo(s)</div>`+
+  evs.map(e=>`<div class="day-event-item"><div class="tl-dot ${e.status==='urgente'||e.status==='vencido'?'red':'blue'}" style="margin-top:4px;flex-shrink:0"></div><div><div style="font-size:12px;font-weight:500;color:var(--text)">${e.tipo} — ${e.label}</div><div style="font-size:11px;color:var(--text3)">Marca: ${e.marca||'—'}</div></div></div>`).join('');
+}
+function renderMonthSummary(ev){
+  const total=Object.values(ev).flat().length;
+  document.getElementById('monthSummary').innerHTML=`<div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+    <div style="display:flex;justify-content:space-between"><span style="color:var(--text2)">Total de prazos</span><span style="font-weight:500;color:var(--text)">${total}</span></div>
+  </div>`;
+}
+function calNav(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCalendario();}
+function calToday(){calYear=new Date().getFullYear();calMonth=new Date().getMonth();calSelected=today();renderCalendario();}
+
+// MODALS
 function openModal(t){
   document.getElementById('modal-'+t).classList.add('open');
-  if(t==='notif'){document.getElementById('n-envio').value=today();resetChannels();}
-  if(t==='contra'){document.getElementById('c-recebida').value=today();resetChannels();}
+  if(t==='notif'){document.getElementById('n-envio').value=today();resetChannels('nch');}
+  if(t==='contra'){document.getElementById('c-recebida').value=today();resetChannels('cch');}
   if(t==='email'){document.getElementById('e-data').value=today();document.getElementById('e-hora').value=new Date().toTimeString().slice(0,5);}
 }
 function closeModal(t){document.getElementById('modal-'+t).classList.remove('open');}
 document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');}));
 
-// STATUS MODAL
-function openStatus(tipo,idx){
-  statusTarget={tipo,idx};
-  document.getElementById('st-data').value=today();
-  document.getElementById('st-obs').value='';
-  document.getElementById('modal-status').classList.add('open');
-}
-function confirmStatus(){
-  if(!statusTarget)return;
-  const db=getDB();
-  const newStatus=document.getElementById('st-status').value;
-  const obs=document.getElementById('st-obs').value;
-  const data=document.getElementById('st-data').value;
-  const item=statusTarget.tipo==='notif'?db.notifs[statusTarget.idx]:db.contras[statusTarget.idx];
-  item.status=newStatus;
-  item.statusData=data;
-  item.statusObs=obs;
-  item.statusPor=currentUser.nome;
-  saveDB(db);
-  closeModal('status');
-  if(statusTarget.tipo==='notif')renderNotif();else renderContra();
-  renderPainel();
-  statusTarget=null;
-}
-
-// SAVE FUNCTIONS
+// SAVE
 function saveNotif(){
   const c=document.getElementById('n-cliente').value.trim();
   const n=document.getElementById('n-notificado').value.trim();
   if(!c||!n){alert('Preencha cliente e notificado.');return;}
   const channels=[];
-  ['ch-email','ch-whats','ch-correio','ch-cartorio','ch-presencial'].forEach(id=>{
-    const el=document.getElementById(id);if(el&&el.classList.contains('selected'))channels.push(el.querySelector('input').value);
-  });
+  ['nch-email','nch-whats','nch-correio','nch-cartorio','nch-presencial'].forEach(id=>{const el=document.getElementById(id);if(el&&el.classList.contains('selected'))channels.push(el.querySelector('input').value||el.textContent.trim());});
   const db=getDB();
-  db.notifs.push({id:uid(),cliente:c,notificado:n,marca:document.getElementById('n-marca').value.trim(),resp:document.getElementById('n-resp').value,envio:document.getElementById('n-envio').value,prazo:document.getElementById('n-prazo').value,channels,obs:document.getElementById('n-obs').value,status:'aberto',criadoPor:currentUser.nome,criado:new Date().toISOString()});
-  saveDB(db);closeModal('notif');renderNotif();renderPainel();
+  const envio=document.getElementById('n-envio').value;
+  const prazo=document.getElementById('n-prazo').value;
+  // auto status
+  let status='cadastrada';
+  if(envio&&channels.length)status='enviada';
+  db.notifs.push({id:uid(),cliente:c,notificado:n,marca:document.getElementById('n-marca').value.trim(),resp:document.getElementById('n-resp').value,envio,prazo,channels,obs:document.getElementById('n-obs').value,status,criadoPor:currentUser.nome,criado:new Date().toISOString()});
+  saveDB(db);closeModal('notif');
   ['n-cliente','n-notificado','n-marca','n-obs'].forEach(id=>document.getElementById(id).value='');
-  resetChannels();
+  resetChannels('nch');renderNotif();renderKanban();renderPainel();checkAlerts();
 }
 
 function saveContra(){
@@ -893,19 +1094,18 @@ function saveContra(){
   const n=document.getElementById('c-notificante').value.trim();
   if(!c||!n){alert('Preencha cliente e notificante.');return;}
   const channels=[];
-  ['cc-email','cc-whats','cc-correio','cc-cartorio'].forEach(id=>{
-    const el=document.getElementById(id);if(el&&el.classList.contains('selected'))channels.push(el.querySelector('input').value);
-  });
+  ['cch-email','cch-whats','cch-correio','cch-cartorio'].forEach(id=>{const el=document.getElementById(id);if(el&&el.classList.contains('selected'))channels.push(el.querySelector('input').value||el.textContent.trim());});
   const db=getDB();
-  db.contras.push({id:uid(),cliente:c,notificante:n,marca:document.getElementById('c-marca').value.trim(),resp:document.getElementById('c-resp').value,recebida:document.getElementById('c-recebida').value,prazoRecebido:document.getElementById('c-prazo-recebido').value,enviada:document.getElementById('c-enviada').value,alerta:document.getElementById('c-alerta').value,channels,obs:document.getElementById('c-obs').value,status:'aberto',criadoPor:currentUser.nome,criado:new Date().toISOString()});
-  saveDB(db);closeModal('contra');renderContra();renderPainel();
+  const enviada=document.getElementById('c-enviada').value;
+  let status='cadastrada';if(enviada&&channels.length)status='enviada';
+  db.contras.push({id:uid(),cliente:c,notificante:n,marca:document.getElementById('c-marca').value.trim(),resp:document.getElementById('c-resp').value,recebida:document.getElementById('c-recebida').value,prazoRec:document.getElementById('c-prazo-rec').value,enviada,alerta:document.getElementById('c-alerta').value,channels,obs:document.getElementById('c-obs').value,status,criadoPor:currentUser.nome,criado:new Date().toISOString()});
+  saveDB(db);closeModal('contra');
   ['c-cliente','c-notificante','c-marca','c-obs'].forEach(id=>document.getElementById(id).value='');
-  resetChannels();
+  resetChannels('cch');renderContra();renderKanban();renderPainel();checkAlerts();
 }
 
 function saveEmail(){
-  const c=document.getElementById('e-caso').value.trim();
-  if(!c){alert('Informe o caso vinculado.');return;}
+  const c=document.getElementById('e-caso').value.trim();if(!c){alert('Informe o caso.');return;}
   const db=getDB();
   db.emails.push({id:uid(),caso:c,tipo:document.getElementById('e-tipo').value,quem:document.getElementById('e-quem').value,data:document.getElementById('e-data').value,hora:document.getElementById('e-hora').value,dest:document.getElementById('e-dest').value,viu:document.getElementById('e-viu').value,obs:document.getElementById('e-obs').value,criadoPor:currentUser.nome,criado:new Date().toISOString()});
   saveDB(db);closeModal('email');renderEmails();
@@ -919,65 +1119,66 @@ function saveUsuario(){
   const role=document.getElementById('u-role').value;
   if(!nome||!user||!pass){alert('Preencha todos os campos.');return;}
   const db=getDB();
-  if(db.users.find(u=>u.user===user)){alert('Nome de usuário já existe.');return;}
+  if(db.users.find(u=>u.user===user)){alert('Usuário já existe.');return;}
   db.users.push({id:uid(),nome,user,pass,role,criado:new Date().toISOString()});
   saveDB(db);closeModal('usuario');renderUsers();populateResponsaveis();
   ['u-nome','u-user','u-pass'].forEach(id=>document.getElementById(id).value='');
 }
 
 function deleteUser(idx){
-  const db=getDB();
-  if(db.users[idx].user===currentUser.user){alert('Você não pode remover a si mesmo.');return;}
-  if(!confirm('Remover usuário "'+db.users[idx].nome+'"?'))return;
-  db.users.splice(idx,1);saveDB(db);renderUsers();populateResponsaveis();
+  const db=getDB();if(db.users[idx].user===currentUser.user){alert('Você não pode remover a si mesmo.');return;}
+  if(!confirm('Remover usuário?'))return;db.users.splice(idx,1);saveDB(db);renderUsers();populateResponsaveis();
 }
 function deleteItem(tipo,idx){
-  if(!confirm('Excluir este registro permanentemente?'))return;
+  if(!confirm('Excluir permanentemente?'))return;
   const db=getDB();
   if(tipo==='notif')db.notifs.splice(idx,1);
   else if(tipo==='contra')db.contras.splice(idx,1);
   else db.emails.splice(idx,1);
   saveDB(db);
   if(tipo==='notif')renderNotif();else if(tipo==='contra')renderContra();else renderEmails();
-  renderPainel();
+  renderPainel();checkAlerts();
 }
 
 // DETAIL MODALS
 function detailNotif(idx){
-  const db=getDB();const n=db.notifs[idx];const s=statusNotif(n);
-  const d=diasRestantes(n.envio,n.prazo);
-  const pct=Math.min(100,Math.max(0,Math.round((1-(d/parseInt(n.prazo)))*100)));
-  const fc=d<0?'var(--danger)':d<=3?'var(--warning)':'var(--success)';
-  const vencDate=fmtDate(addDays(n.envio,n.prazo));
+  const db=getDB();const n=db.notifs[idx];
+  const vencDate=n.envio&&n.prazo?fmtDate(addDays(n.envio,n.prazo)):'—';
+  const d=n.envio&&n.prazo?diasR(n.envio,n.prazo):null;
+  const pct=d!==null?Math.min(100,Math.max(0,Math.round((1-(d/parseInt(n.prazo)))*100))):0;
+  const fc=d!==null?(d<0?'var(--danger)':d<=3?'var(--warning)':'var(--success)'):'var(--text3)';
   document.getElementById('detailContent').innerHTML=`
     <h2><i class="ti ti-file-description"></i>Notificação — ${n.cliente}</h2>
     <div class="detail-section"><h3>Identificação</h3>
-      <div class="kv"><span class="k">Cliente (titular)</span><span class="v">${n.cliente}</span></div>
+      <div class="kv"><span class="k">Cliente</span><span class="v">${n.cliente}</span></div>
       <div class="kv"><span class="k">Notificado</span><span class="v">${n.notificado}</span></div>
       <div class="kv"><span class="k">Marca</span><span class="v">${n.marca||'—'}</span></div>
       <div class="kv"><span class="k">Responsável</span><span class="v">${n.resp}</span></div>
-      <div class="kv"><span class="k">Criado por</span><span class="v">${n.criadoPor||'—'} · ${fmtDateTime(n.criado)}</span></div>
+      <div class="kv"><span class="k">Criado por</span><span class="v">${n.criadoPor||'—'} · ${fmtDT(n.criado)}</span></div>
     </div>
     <div class="detail-section"><h3>Prazo e canais</h3>
       <div class="kv"><span class="k">Enviada em</span><span class="v">${fmtDate(n.envio)}</span></div>
-      <div class="kv"><span class="k">Prazo dado</span><span class="v">${n.prazo} dias (vence ${vencDate})</span></div>
-      <div class="kv"><span class="k">Canais utilizados</span><span class="v">${(n.channels&&n.channels.length)?n.channels.join(', '):'—'}</span></div>
-      <div class="kv"><span class="k">Status</span><span class="v"><span class="badge ${s.cls}">${s.label}</span></span></div>
-      <div style="margin-top:10px"><div style="font-size:11px;color:var(--text3);margin-bottom:5px;font-family:var(--mono)">${pct}% do prazo decorrido</div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${fc}"></div></div></div>
+      <div class="kv"><span class="k">Prazo dado</span><span class="v">${n.prazo?n.prazo+'d (vence '+vencDate+')':'—'}</span></div>
+      <div class="kv"><span class="k">Canais</span><span class="v">${(n.channels&&n.channels.length)?n.channels.join(', '):'—'}</span></div>
+      <div class="kv"><span class="k">Status</span><span class="v"><span class="badge ${n.status}">${getStatusLabel(n.status)}</span></span></div>
+      ${d!==null?`<div style="margin-top:10px"><div style="font-size:11px;color:var(--text3);margin-bottom:5px;font-family:var(--mono)">${pct}% do prazo decorrido</div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${fc}"></div></div></div>`:''}
     </div>
-    ${n.statusObs?`<div class="detail-section"><h3>Desfecho</h3><div class="kv"><span class="k">Status final</span><span class="v"><span class="badge ${n.status}">${s.label}</span></span></div><div class="kv"><span class="k">Data</span><span class="v">${fmtDate(n.statusData)}</span></div><div class="kv"><span class="k">Por</span><span class="v">${n.statusPor}</span></div><div class="kv"><span class="k">Obs.</span><span class="v">${n.statusObs}</span></div></div>`:''}
     ${n.obs?`<div class="detail-section"><h3>Observações</h3><p style="font-size:13px;color:var(--text2);line-height:1.6">${n.obs}</p></div>`:''}
     <div class="modal-footer">
-      ${!['respondido','arquivado'].includes(n.status)?`<button class="btn primary" onclick="openStatus('notif',${idx});document.getElementById('modal-detail').classList.remove('open')"><i class="ti ti-settings"></i> Atualizar status</button>`:''}
-      <button class="btn" onclick="document.getElementById('modal-detail').classList.remove('open')">Fechar</button>
+      <div style="flex:1">
+        <select id="quickStatus" style="height:32px;font-size:12px">
+          ${KANBAN_COLS.map(c=>`<option value="${c.id}"${n.status===c.id?' selected':''}>${c.label}</option>`).join('')}
+        </select>
+      </div>
+      <button class="btn primary" onclick="const db=getDB();db.notifs[${idx}].status=document.getElementById('quickStatus').value;db.notifs[${idx}].statusPor=currentUser.nome;saveDB(db);closeModal('detail');renderNotif();renderKanban();renderPainel();checkAlerts()"><i class="ti ti-check"></i>Atualizar status</button>
+      <button class="btn" onclick="closeModal('detail')">Fechar</button>
     </div>`;
   document.getElementById('modal-detail').classList.add('open');
 }
 
 function detailContra(idx){
-  const db=getDB();const c=db.contras[idx];const s=statusContra(c);
-  const limiteDefesa=c.recebida&&c.prazoRecebido?fmtDate(addDays(c.recebida,c.prazoRecebido)):'—';
+  const db=getDB();const c=db.contras[idx];
+  const limDef=c.recebida&&c.prazoRec?fmtDate(addDays(c.recebida,c.prazoRec)):'—';
   const alertaData=c.enviada&&c.alerta?fmtDate(addDays(c.enviada,c.alerta)):'—';
   document.getElementById('detailContent').innerHTML=`
     <h2><i class="ti ti-inbox"></i>Contra-notificação — ${c.cliente}</h2>
@@ -986,23 +1187,26 @@ function detailContra(idx){
       <div class="kv"><span class="k">Notificante</span><span class="v">${c.notificante}</span></div>
       <div class="kv"><span class="k">Marca contestada</span><span class="v">${c.marca||'—'}</span></div>
       <div class="kv"><span class="k">Responsável</span><span class="v">${c.resp}</span></div>
-      <div class="kv"><span class="k">Criado por</span><span class="v">${c.criadoPor||'—'} · ${fmtDateTime(c.criado)}</span></div>
     </div>
     <div class="detail-section"><h3>Notificação recebida</h3>
       <div class="kv"><span class="k">Recebida em</span><span class="v">${fmtDate(c.recebida)}</span></div>
-      <div class="kv"><span class="k">Prazo p/ defesa</span><span class="v">${c.prazoRecebido?c.prazoRecebido+'d (limite: '+limiteDefesa+')':'—'}</span></div>
+      <div class="kv"><span class="k">Limite de defesa</span><span class="v">${c.prazoRec?c.prazoRec+'d ('+limDef+')':'—'}</span></div>
     </div>
     <div class="detail-section"><h3>Nossa contra-notificação</h3>
       <div class="kv"><span class="k">Enviada em</span><span class="v">${c.enviada?fmtDate(c.enviada):'Pendente'}</span></div>
       <div class="kv"><span class="k">Canais</span><span class="v">${(c.channels&&c.channels.length)?c.channels.join(', '):'—'}</span></div>
-      <div class="kv"><span class="k">Alerta de retorno</span><span class="v">${c.alerta}d após envio${alertaData!=='—'?' ('+alertaData+')':''}</span></div>
-      <div class="kv"><span class="k">Status</span><span class="v"><span class="badge ${s.cls}">${s.label}</span></span></div>
+      <div class="kv"><span class="k">Alerta retorno</span><span class="v">${c.alerta?c.alerta+'d após envio ('+alertaData+')':'—'}</span></div>
+      <div class="kv"><span class="k">Status</span><span class="v"><span class="badge ${c.status}">${getStatusLabel(c.status)}</span></span></div>
     </div>
-    ${c.statusObs?`<div class="detail-section"><h3>Desfecho</h3><div class="kv"><span class="k">Status</span><span class="v"><span class="badge ${c.status}">${s.label}</span></span></div><div class="kv"><span class="k">Data</span><span class="v">${fmtDate(c.statusData)}</span></div><div class="kv"><span class="k">Por</span><span class="v">${c.statusPor}</span></div><div class="kv"><span class="k">Obs.</span><span class="v">${c.statusObs}</span></div></div>`:''}
     ${c.obs?`<div class="detail-section"><h3>Observações</h3><p style="font-size:13px;color:var(--text2);line-height:1.6">${c.obs}</p></div>`:''}
     <div class="modal-footer">
-      ${!['respondido','arquivado'].includes(c.status)?`<button class="btn primary" onclick="openStatus('contra',${idx});document.getElementById('modal-detail').classList.remove('open')"><i class="ti ti-settings"></i> Atualizar status</button>`:''}
-      <button class="btn" onclick="document.getElementById('modal-detail').classList.remove('open')">Fechar</button>
+      <div style="flex:1">
+        <select id="quickStatusC" style="height:32px;font-size:12px">
+          ${KANBAN_COLS.map(col=>`<option value="${col.id}"${c.status===col.id?' selected':''}>${col.label}</option>`).join('')}
+        </select>
+      </div>
+      <button class="btn primary" onclick="const db=getDB();db.contras[${idx}].status=document.getElementById('quickStatusC').value;db.contras[${idx}].statusPor=currentUser.nome;saveDB(db);closeModal('detail');renderContra();renderKanban();renderPainel();checkAlerts()"><i class="ti ti-check"></i>Atualizar status</button>
+      <button class="btn" onclick="closeModal('detail')">Fechar</button>
     </div>`;
   document.getElementById('modal-detail').classList.add('open');
 }
