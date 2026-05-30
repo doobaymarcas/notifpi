@@ -627,12 +627,18 @@ const KANBAN_COLS=[
   {id:'enviada',label:'Enviada',cls:'col-enviada'},
   {id:'aguardando',label:'Aguardando Resposta',cls:'col-aguardando'},
   {id:'respondida',label:'Respondida',cls:'col-respondida'},
-  {id:'resolvida',label:'Resolvida ✓',cls:'col-resolvida'},
-  {id:'standby',label:'Stand-by',cls:'col-standby'},
-  {id:'ag-cliente',label:'Ag. Cliente',cls:'col-ag-cliente'},
-  {id:'judicial',label:'Ag. Judicial',cls:'col-judicial'},
-  {id:'arquivada',label:'Arquivada',cls:'col-arquivada'},
 ];
+const RESPONDIDA_SUB=[
+  {id:'todos',label:'Todos os status'},
+  {id:'respondida',label:'Respondida'},
+  {id:'resolvida',label:'Resolvida ✓'},
+  {id:'standby',label:'Stand-by'},
+  {id:'ag-cliente',label:'Ag. Cliente'},
+  {id:'judicial',label:'Ag. Judicial'},
+  {id:'arquivada',label:'Arquivada'},
+];
+const STATUS_RESPONDIDA=['resolvida','standby','ag-cliente','judicial','arquivada','respondida'];
+let respondidaFilter='todos';
 
 const STATUS_LABELS={
   cadastrada:'Cadastrada',enviada:'Enviada',aguardando:'Aguardando',
@@ -859,7 +865,8 @@ function renderKanban(){
   const db=getDB();
   const items=kanbanType==='notif'?db.notifs:db.contras;
   const board=document.getElementById('kanbanBoard');
-  board.innerHTML=KANBAN_COLS.map(col=>{
+  // First 3 cols: cadastrada, enviada, aguardando
+  let html=KANBAN_COLS.slice(0,3).map(col=>{
     const colItems=items.filter(i=>i.status===col.id);
     return`<div class="kanban-col ${col.cls}">
       <div class="kanban-col-head">
@@ -870,10 +877,31 @@ function renderKanban(){
         ondragover="e=>{e.preventDefault();this.classList.add('drag-over')}"
         ondragleave="this.classList.remove('drag-over')"
         ondrop="dropCard(event,'${col.id}')">
-        ${colItems.map((item,i)=>renderKCard(item,items.indexOf(item))).join('')}
+        ${colItems.map((item)=>renderKCard(item,items.indexOf(item))).join('')}
       </div>
     </div>`;
   }).join('');
+  // Respondida col: shows all STATUS_RESPONDIDA items, filterable
+  const allRespondida=items.filter(i=>STATUS_RESPONDIDA.includes(i.status));
+  const filteredRespondida=respondidaFilter==='todos'?allRespondida:items.filter(i=>i.status===respondidaFilter);
+  html+=`<div class="kanban-col col-respondida" style="flex:0 0 260px">
+    <div class="kanban-col-head" style="flex-direction:column;align-items:flex-start;gap:8px;padding-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+        <span class="kanban-col-title">Respondida / Encerrada</span>
+        <span class="kanban-col-count">${allRespondida.length}</span>
+      </div>
+      <select style="width:100%;height:26px;font-size:11px;padding:2px 8px;border-radius:6px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.12);color:var(--text2);font-family:var(--mono)" onchange="respondidaFilter=this.value;renderKanban()">
+        ${RESPONDIDA_SUB.map(s=>`<option value="${s.id}"${respondidaFilter===s.id?' selected':''}>${s.label}</option>`).join('')}
+      </select>
+    </div>
+    <div class="kanban-col-body" data-col="respondida"
+      ondragover="e=>{e.preventDefault();this.classList.add('drag-over')}"
+      ondragleave="this.classList.remove('drag-over')"
+      ondrop="dropCard(event,'respondida')">
+      ${filteredRespondida.length?filteredRespondida.map(item=>renderKCard(item,items.indexOf(item))).join(''):'<div style=\"text-align:center;padding:2rem;color:var(--text3);font-size:12px\">Nenhum caso neste status</div>'}
+    </div>
+  </div>`;
+  board.innerHTML=html;
 }
 
 function renderKCard(item,idx){
@@ -892,14 +920,27 @@ function renderKCard(item,idx){
     <div class="kcard-type">${isNotif?'Notificação':'Contra-notif.'}</div>
     <div class="kcard-title">${title}</div>
     <div class="kcard-sub">${item.marca||'—'} · ${item.resp||'—'}</div>
+    ${STATUS_RESPONDIDA.includes(item.status)?`<div style="margin-bottom:4px"><span class="badge ${item.status}" style="font-size:10px">${getStatusLabel(item.status)}</span></div>`:''}
     <div class="kcard-footer">
       <span class="kcard-date">${fmtDate(item.envio||item.recebida||'')}</span>
       ${urgLabel?`<span class="kcard-urgency ${urgCls}">${urgLabel}</span>`:''}
     </div>
     <div class="kcard-actions">
-      <button class="btn sm icon-only" onclick="isNotif=kanbanType==='notif';isNotif?detailNotif(${idx}):detailContra(${idx})" title="Detalhes"><i class="ti ti-eye"></i></button>
+      <button class="btn sm icon-only" onclick="kanbanType==='notif'?detailNotif(${idx}):detailContra(${idx})" title="Detalhes"><i class="ti ti-eye"></i></button>
       <select class="filter-select" style="height:24px;font-size:11px;padding:2px 6px;flex:1" onchange="moveCard(${idx},this.value)">
-        ${KANBAN_COLS.map(c=>`<option value="${c.id}"${item.status===c.id?' selected':''}>${c.label}</option>`).join('')}
+        <optgroup label="Etapas">
+          <option value="cadastrada"${item.status==='cadastrada'?' selected':''}>Cadastrada</option>
+          <option value="enviada"${item.status==='enviada'?' selected':''}>Enviada</option>
+          <option value="aguardando"${item.status==='aguardando'?' selected':''}>Aguardando</option>
+        </optgroup>
+        <optgroup label="Respondida / Encerrada">
+          <option value="respondida"${item.status==='respondida'?' selected':''}>Respondida</option>
+          <option value="resolvida"${item.status==='resolvida'?' selected':''}>Resolvida ✓</option>
+          <option value="standby"${item.status==='standby'?' selected':''}>Stand-by</option>
+          <option value="ag-cliente"${item.status==='ag-cliente'?' selected':''}>Ag. Cliente</option>
+          <option value="judicial"${item.status==='judicial'?' selected':''}>Ag. Judicial</option>
+          <option value="arquivada"${item.status==='arquivada'?' selected':''}>Arquivada</option>
+        </optgroup>
       </select>
     </div>
   </div>`;
@@ -909,6 +950,12 @@ function dragCard(e,idx){dragItem=idx;setTimeout(()=>{const el=e.target;if(el)el
 function dropCard(e,colId){
   e.preventDefault();e.currentTarget.classList.remove('drag-over');
   if(dragItem===null)return;
+  const db=getDB();
+  const arr=kanbanType==='notif'?db.notifs:db.contras;
+  // If dropping into respondida col and item already has sub-status, keep it
+  if(colId==='respondida'&&arr[dragItem]&&STATUS_RESPONDIDA.includes(arr[dragItem].status)){
+    dragItem=null;return;
+  }
   moveCard(dragItem,colId);dragItem=null;
 }
 function moveCard(idx,newStatus){
@@ -1170,7 +1217,15 @@ function detailNotif(idx){
     <div class="modal-footer">
       <div style="flex:1">
         <select id="quickStatus" style="height:32px;font-size:12px">
-          ${KANBAN_COLS.map(c=>`<option value="${c.id}"${n.status===c.id?' selected':''}>${c.label}</option>`).join('')}
+          <option value="cadastrada">Cadastrada</option>
+          <option value="enviada">Enviada</option>
+          <option value="aguardando">Aguardando</option>
+          <option value="respondida">Respondida</option>
+          <option value="resolvida">Resolvida ✓</option>
+          <option value="standby">Stand-by</option>
+          <option value="ag-cliente">Ag. Cliente</option>
+          <option value="judicial">Ag. Judicial</option>
+          <option value="arquivada">Arquivada</option>
         </select>
       </div>
       <button class="btn primary" onclick="const db=getDB();db.notifs[${idx}].status=document.getElementById('quickStatus').value;db.notifs[${idx}].statusPor=currentUser.nome;saveDB(db);closeModal('detail');renderNotif();renderKanban();renderPainel();checkAlerts()"><i class="ti ti-check"></i>Atualizar status</button>
@@ -1401,7 +1456,15 @@ function detailContra(idx){
     <div class="modal-footer">
       <div style="flex:1">
         <select id="quickStatusC" style="height:32px;font-size:12px">
-          ${KANBAN_COLS.map(col=>`<option value="${col.id}"${c.status===col.id?' selected':''}>${col.label}</option>`).join('')}
+          <option value="cadastrada">Cadastrada</option>
+          <option value="enviada">Enviada</option>
+          <option value="aguardando">Aguardando</option>
+          <option value="respondida">Respondida</option>
+          <option value="resolvida">Resolvida ✓</option>
+          <option value="standby">Stand-by</option>
+          <option value="ag-cliente">Ag. Cliente</option>
+          <option value="judicial">Ag. Judicial</option>
+          <option value="arquivada">Arquivada</option>
         </select>
       </div>
       <button class="btn primary" onclick="const db=getDB();db.contras[${idx}].status=document.getElementById('quickStatusC').value;db.contras[${idx}].statusPor=currentUser.nome;saveDB(db);closeModal('detail');renderContra();renderKanban();renderPainel();checkAlerts()"><i class="ti ti-check"></i>Atualizar status</button>
