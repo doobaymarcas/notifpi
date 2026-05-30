@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DOOBAY NOTIF</title>
+<title>DooNotifica</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
   --bg:#0f0f11;--bg2:#17171a;--bg3:#1e1e23;--bg4:#25252b;
@@ -264,7 +265,7 @@ td.pc{color:var(--text);font-weight:500}
     <div class="login-logo">
       <div class="logo-icon">DN</div>
       <div>
-        <div class="brand"><span>DOOBAY</span> NOTIF</div>
+        <div class="brand"><span>Doo</span>Notifica</div>
         <div class="brand-sub">PROPRIEDADE INTELECTUAL</div>
       </div>
     </div>
@@ -303,7 +304,7 @@ td.pc{color:var(--text);font-weight:500}
   <!-- SIDEBAR -->
   <div class="sidebar">
     <div class="sidebar-logo">
-      <div class="brand"><span>DOOBAY</span> NOTIF</div>
+      <div class="brand"><span>Doo</span>Notifica</div>
       <div class="brand-sub" style="font-size:9px;color:var(--text3);font-family:var(--mono);letter-spacing:.1em">PROP. INTELECTUAL</div>
     </div>
     <nav>
@@ -640,7 +641,7 @@ const STATUS_LABELS={
 };
 
 function loadDB(){try{return JSON.parse(localStorage.getItem(DB_KEY))||initDB();}catch(e){return initDB();}}
-function initDB(){const db={users:[{id:'u1',nome:'Administrador',user:'admin',pass:'doobay2024',role:'admin',criado:new Date().toISOString()}],notifs:[],contras:[],emails:[]};saveDB(db);return db;}
+function initDB(){const db={users:[{id:'u1',nome:'Administrador',user:'admin',pass:'doonotifica2024',role:'admin',criado:new Date().toISOString()}],notifs:[],contras:[],emails:[]};saveDB(db);return db;}
 function saveDB(db){localStorage.setItem(DB_KEY,JSON.stringify(db));}
 function getDB(){return loadDB();}
 
@@ -951,6 +952,7 @@ function renderNotif(){
       <td style="font-size:11px;color:var(--text3)">${n.criadoPor||'—'}</td>
       <td><div style="display:flex;gap:3px">
         <button class="btn sm icon-only" onclick="detailNotif(${idx})" title="Detalhes"><i class="ti ti-eye"></i></button>
+        <button class="btn sm icon-only" onclick="gerarPDFNotif(${idx})" title="Gerar PDF" style="color:var(--danger)"><i class="ti ti-file-type-pdf"></i></button>
         ${currentUser.role==='admin'?`<button class="btn sm icon-only" onclick="deleteItem('notif',${idx})" style="color:var(--danger)"><i class="ti ti-trash"></i></button>`:''}
       </div></td></tr>`;
   }).join('')+'</tbody></table></div>';
@@ -980,6 +982,7 @@ function renderContra(){
       <td><span class="badge ${c.status}">${getStatusLabel(c.status)}</span></td>
       <td><div style="display:flex;gap:3px">
         <button class="btn sm icon-only" onclick="detailContra(${idx})"><i class="ti ti-eye"></i></button>
+        <button class="btn sm icon-only" onclick="gerarPDFContra(${idx})" title="Gerar PDF" style="color:var(--danger)"><i class="ti ti-file-type-pdf"></i></button>
         ${currentUser.role==='admin'?`<button class="btn sm icon-only" onclick="deleteItem('contra',${idx})" style="color:var(--danger)"><i class="ti ti-trash"></i></button>`:''}
       </div></td></tr>`;
   }).join('')+'</tbody></table></div>';
@@ -1171,9 +1174,205 @@ function detailNotif(idx){
         </select>
       </div>
       <button class="btn primary" onclick="const db=getDB();db.notifs[${idx}].status=document.getElementById('quickStatus').value;db.notifs[${idx}].statusPor=currentUser.nome;saveDB(db);closeModal('detail');renderNotif();renderKanban();renderPainel();checkAlerts()"><i class="ti ti-check"></i>Atualizar status</button>
+      <button class="btn" onclick="gerarPDFNotif(${idx})" style="color:var(--danger);border-color:var(--danger)"><i class="ti ti-file-type-pdf"></i>Gerar PDF</button>
       <button class="btn" onclick="closeModal('detail')">Fechar</button>
     </div>`;
   document.getElementById('modal-detail').classList.add('open');
+}
+
+// PDF GENERATION
+function gerarPDFNotif(idx){
+  const db=getDB();const n=db.notifs[idx];
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const W=210;const margin=20;const lineH=7;let y=margin;
+
+  // Header bar
+  doc.setFillColor(30,30,40);doc.rect(0,0,W,28,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(16);doc.setFont('helvetica','bold');
+  doc.text('DooNotifica',margin,12);
+  doc.setFontSize(8);doc.setFont('helvetica','normal');
+  doc.setTextColor(180,180,200);
+  doc.text('PROPRIEDADE INTELECTUAL — RELATÓRIO DE MOVIMENTAÇÃO',margin,19);
+  doc.setTextColor(120,120,150);
+  doc.text('Gerado em: '+new Date().toLocaleDateString('pt-BR')+' às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),margin,25);
+
+  y=38;
+  // Title
+  doc.setFillColor(79,110,247);doc.rect(margin,y,W-margin*2,8,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(10);doc.setFont('helvetica','bold');
+  doc.text('NOTIFICAÇÃO EXTRAJUDICIAL',margin+4,y+5.5);
+  y+=14;
+
+  // Info block
+  function row(label,value,yPos){
+    doc.setFillColor(245,245,250);doc.rect(margin,yPos,W-margin*2,lineH,'F');
+    doc.setDrawColor(220,220,235);doc.rect(margin,yPos,W-margin*2,lineH,'S');
+    doc.setTextColor(100,100,130);doc.setFontSize(8);doc.setFont('helvetica','bold');
+    doc.text(label,margin+3,yPos+4.8);
+    doc.setTextColor(30,30,50);doc.setFont('helvetica','normal');doc.setFontSize(8.5);
+    doc.text(value||'—',margin+55,yPos+4.8);
+    return yPos+lineH;
+  }
+
+  doc.setTextColor(60,60,90);doc.setFontSize(9);doc.setFont('helvetica','bold');
+  doc.text('1. IDENTIFICAÇÃO DAS PARTES',margin,y);
+  y+=5;
+  y=row('Cliente (Titular)',n.cliente,y);
+  y=row('Notificado',n.notificado,y);
+  y=row('Marca envolvida',n.marca||'—',y);
+  y=row('Responsável',n.resp,y);
+  y+=6;
+
+  doc.setFont('helvetica','bold');doc.setFontSize(9);
+  doc.text('2. DADOS DO ENVIO',margin,y);y+=5;
+  const venc=n.envio&&n.prazo?fmtDate(addDays(n.envio,n.prazo)):'—';
+  y=row('Data de envio',fmtDate(n.envio),y);
+  y=row('Prazo concedido',n.prazo?n.prazo+' dias (vencimento: '+venc+')':'—',y);
+  y=row('Canais utilizados',(n.channels&&n.channels.length)?n.channels.join(', '):'—',y);
+  y+=6;
+
+  doc.setFont('helvetica','bold');doc.setFontSize(9);
+  doc.text('3. STATUS ATUAL',margin,y);y+=5;
+
+  const statusMap={cadastrada:'Cadastrada',enviada:'Enviada — aguardando resposta',aguardando:'Aguardando resposta',respondida:'Respondida',resolvida:'Resolvida / Concluída',standby:'Stand-by',arquivada:'Arquivada','ag-cliente':'Aguardando retorno do cliente',judicial:'Encaminhado para via judicial'};
+  y=row('Situação do caso',statusMap[n.status]||n.status,y);
+
+  const d=n.envio&&n.prazo?diasR(n.envio,n.prazo):null;
+  if(d!==null){
+    const prazoInfo=d<0?'Prazo vencido há '+Math.abs(d)+' dia(s)':d===0?'Prazo vence hoje':d+' dia(s) restantes';
+    y=row('Prazo',prazoInfo,y);
+  }
+  y+=6;
+
+  // Retorno
+  doc.setFont('helvetica','bold');doc.setFontSize(9);
+  doc.text('4. RETORNO',margin,y);y+=5;
+  const retorno=(['respondida','resolvida'].includes(n.status))?'Sim — caso respondido/resolvido':'Não há registro de retorno até a data deste relatório';
+  y=row('Houve retorno?',retorno,y);
+  y+=8;
+
+  // Text block
+  doc.setFillColor(248,248,252);doc.rect(margin,y,W-margin*2,38,'F');
+  doc.setDrawColor(200,200,220);doc.rect(margin,y,W-margin*2,38,'S');
+  doc.setTextColor(80,80,120);doc.setFontSize(8);doc.setFont('helvetica','bolditalic');
+  doc.text('NOTA AO CLIENTE:',margin+4,y+6);
+  doc.setFont('helvetica','italic');doc.setTextColor(90,90,110);
+  const nota='O presente relatório contempla as informações de movimentação registradas no sistema DooNotifica '+'até a presente data. Quanto ao teor das notificações, das tratativas realizadas e dos aspectos '+'jurídicos do caso, recomenda-se verificação junto à equipe jurídica responsável pelo acompanhamento '+'da demanda. As informações aqui apresentadas têm caráter informativo e de controle interno.';
+  const notaLines=doc.splitTextToSize(nota,W-margin*2-8);
+  doc.text(notaLines,margin+4,y+12);
+  y+=44;
+
+  if(n.obs){
+    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(60,60,90);
+    doc.text('5. OBSERVAÇÕES REGISTRADAS',margin,y);y+=5;
+    doc.setFillColor(255,255,255);doc.rect(margin,y,W-margin*2,20,'F');
+    doc.setDrawColor(220,220,235);doc.rect(margin,y,W-margin*2,20,'S');
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(70,70,90);
+    const obsLines=doc.splitTextToSize(n.obs,W-margin*2-6);
+    doc.text(obsLines,margin+3,y+5);
+    y+=24;
+  }
+
+  // Footer
+  const pageH=297;
+  doc.setFillColor(30,30,40);doc.rect(0,pageH-14,W,14,'F');
+  doc.setTextColor(120,120,150);doc.setFontSize(7);doc.setFont('helvetica','normal');
+  doc.text('DooNotifica — Sistema de Controle de Notificações | Propriedade Intelectual',margin,pageH-7);
+  doc.text('Responsável: '+n.resp+'  |  Criado por: '+(n.criadoPor||'—'),W-margin,pageH-7,{align:'right'});
+
+  doc.save('relatorio-notificacao-'+(n.cliente||'caso').replace(/\s+/g,'-').toLowerCase()+'.pdf');
+}
+
+function gerarPDFContra(idx){
+  const db=getDB();const c=db.contras[idx];
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const W=210;const margin=20;const lineH=7;let y=margin;
+
+  doc.setFillColor(30,30,40);doc.rect(0,0,W,28,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(16);doc.setFont('helvetica','bold');
+  doc.text('DooNotifica',margin,12);
+  doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(180,180,200);
+  doc.text('PROPRIEDADE INTELECTUAL — RELATÓRIO DE MOVIMENTAÇÃO',margin,19);
+  doc.setTextColor(120,120,150);
+  doc.text('Gerado em: '+new Date().toLocaleDateString('pt-BR')+' às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),margin,25);
+
+  y=38;
+  doc.setFillColor(45,212,160);doc.rect(margin,y,W-margin*2,8,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(10);doc.setFont('helvetica','bold');
+  doc.text('CONTRA-NOTIFICAÇÃO EXTRAJUDICIAL',margin+4,y+5.5);
+  y+=14;
+
+  function row(label,value,yPos){
+    doc.setFillColor(245,245,250);doc.rect(margin,yPos,W-margin*2,lineH,'F');
+    doc.setDrawColor(220,220,235);doc.rect(margin,yPos,W-margin*2,lineH,'S');
+    doc.setTextColor(100,100,130);doc.setFontSize(8);doc.setFont('helvetica','bold');
+    doc.text(label,margin+3,yPos+4.8);
+    doc.setTextColor(30,30,50);doc.setFont('helvetica','normal');doc.setFontSize(8.5);
+    doc.text(value||'—',margin+60,yPos+4.8);
+    return yPos+lineH;
+  }
+
+  doc.setTextColor(60,60,90);doc.setFontSize(9);doc.setFont('helvetica','bold');
+  doc.text('1. IDENTIFICAÇÃO DAS PARTES',margin,y);y+=5;
+  y=row('Nosso cliente',c.cliente,y);
+  y=row('Empresa notificante',c.notificante,y);
+  y=row('Marca contestada',c.marca||'—',y);
+  y=row('Responsável',c.resp,y);
+  y+=6;
+
+  doc.setFont('helvetica','bold');doc.setFontSize(9);
+  doc.text('2. NOTIFICAÇÃO RECEBIDA',margin,y);y+=5;
+  const limDef=c.recebida&&c.prazoRec?fmtDate(addDays(c.recebida,c.prazoRec)):'—';
+  y=row('Recebida em',fmtDate(c.recebida),y);
+  y=row('Prazo p/ defesa',c.prazoRec?c.prazoRec+' dias (limite: '+limDef+')':'—',y);
+  y+=6;
+
+  doc.setFont('helvetica','bold');doc.setFontSize(9);
+  doc.text('3. NOSSA CONTRA-NOTIFICAÇÃO',margin,y);y+=5;
+  const alertaData=c.enviada&&c.alerta?fmtDate(addDays(c.enviada,c.alerta)):'—';
+  y=row('Enviada em',c.enviada?fmtDate(c.enviada):'Ainda não enviada',y);
+  y=row('Canais utilizados',(c.channels&&c.channels.length)?c.channels.join(', '):'—',y);
+  y=row('Prazo p/ retorno',c.alerta?c.alerta+' dias após envio (alerta: '+alertaData+')':'—',y);
+  y+=6;
+
+  doc.setFont('helvetica','bold');doc.setFontSize(9);
+  doc.text('4. STATUS ATUAL',margin,y);y+=5;
+  const statusMap={cadastrada:'Cadastrada — aguardando envio',enviada:'Contra-notificação enviada',aguardando:'Aguardando retorno do notificante',respondida:'Respondida',resolvida:'Caso resolvido / Encerrado',standby:'Stand-by',arquivada:'Arquivado','ag-cliente':'Aguardando cliente',judicial:'Encaminhado para via judicial'};
+  y=row('Situação',statusMap[c.status]||c.status,y);
+  const retorno=(['respondida','resolvida'].includes(c.status))?'Sim — caso com retorno registrado':'Sem registro de retorno do notificante até esta data';
+  y=row('Retorno do notificante',retorno,y);
+  y+=8;
+
+  doc.setFillColor(248,248,252);doc.rect(margin,y,W-margin*2,38,'F');
+  doc.setDrawColor(200,200,220);doc.rect(margin,y,W-margin*2,38,'S');
+  doc.setTextColor(80,80,120);doc.setFontSize(8);doc.setFont('helvetica','bolditalic');
+  doc.text('NOTA AO CLIENTE:',margin+4,y+6);
+  doc.setFont('helvetica','italic');doc.setTextColor(90,90,110);
+  const nota='O presente relatório apresenta as informações de movimentação da contra-notificação registradas '+'no sistema DooNotifica até a presente data. Para análise do teor das notificações, das '+'tratativas realizadas, das estratégias jurídicas adotadas e dos desdobramentos do caso, '+'recomenda-se consulta à equipe jurídica responsável pelo acompanhamento da demanda.';
+  const notaLines=doc.splitTextToSize(nota,W-margin*2-8);
+  doc.text(notaLines,margin+4,y+12);
+  y+=44;
+
+  if(c.obs){
+    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(60,60,90);
+    doc.text('5. OBSERVAÇÕES',margin,y);y+=5;
+    doc.setFillColor(255,255,255);doc.rect(margin,y,W-margin*2,20,'F');
+    doc.setDrawColor(220,220,235);doc.rect(margin,y,W-margin*2,20,'S');
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(70,70,90);
+    const obsLines=doc.splitTextToSize(c.obs,W-margin*2-6);
+    doc.text(obsLines,margin+3,y+5);
+  }
+
+  const pageH=297;
+  doc.setFillColor(30,30,40);doc.rect(0,pageH-14,W,14,'F');
+  doc.setTextColor(120,120,150);doc.setFontSize(7);doc.setFont('helvetica','normal');
+  doc.text('DooNotifica — Sistema de Controle de Notificações | Propriedade Intelectual',margin,pageH-7);
+  doc.text('Responsável: '+c.resp+'  |  Criado por: '+(c.criadoPor||'—'),W-margin,pageH-7,{align:'right'});
+
+  doc.save('relatorio-contra-notificacao-'+(c.cliente||'caso').replace(/\s+/g,'-').toLowerCase()+'.pdf');
 }
 
 function detailContra(idx){
@@ -1206,6 +1405,7 @@ function detailContra(idx){
         </select>
       </div>
       <button class="btn primary" onclick="const db=getDB();db.contras[${idx}].status=document.getElementById('quickStatusC').value;db.contras[${idx}].statusPor=currentUser.nome;saveDB(db);closeModal('detail');renderContra();renderKanban();renderPainel();checkAlerts()"><i class="ti ti-check"></i>Atualizar status</button>
+      <button class="btn" onclick="gerarPDFContra(${idx})" style="color:var(--danger);border-color:var(--danger)"><i class="ti ti-file-type-pdf"></i>Gerar PDF</button>
       <button class="btn" onclick="closeModal('detail')">Fechar</button>
     </div>`;
   document.getElementById('modal-detail').classList.add('open');
