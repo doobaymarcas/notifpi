@@ -241,8 +241,12 @@ td.pc{color:var(--text);font-weight:500}
 .col-cadastrada .kanban-col-title{color:#94a3b8}
 .col-enviada .kanban-col-head{background:rgba(79,110,247,.08)}
 .col-enviada .kanban-col-title{color:#818cf8}
-.col-aguardando .kanban-col-head{background:rgba(245,166,35,.08)}
-.col-aguardando .kanban-col-title{color:#fbbf24}
+.col-providencia .kanban-col-head{background:rgba(240,82,82,.12)}
+.col-providencia .kanban-col-title{color:#f87171;display:flex;align-items:center;gap:6px}
+.col-providencia .kanban-col-body{border-color:rgba(240,82,82,.25)}
+.col-providencia.has-cards .kanban-col-body{border-color:rgba(240,82,82,.5);box-shadow:0 0 0 1px rgba(240,82,82,.2) inset}
+.providencia-pulse{width:8px;height:8px;border-radius:50%;background:var(--danger);animation:pulse-red 1.5s ease-in-out infinite;flex-shrink:0}
+@keyframes pulse-red{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
 .col-respondida .kanban-col-head{background:rgba(45,212,160,.08)}
 .col-respondida .kanban-col-title{color:#34d399}
 .col-resolvida .kanban-col-head{background:rgba(45,212,160,.06)}
@@ -381,7 +385,7 @@ td.pc{color:var(--text);font-weight:500}
               <option value="">Todos</option>
               <option value="cadastrada">Cadastrada</option>
               <option value="enviada">Enviada</option>
-              <option value="aguardando">Aguardando</option>
+              <option value="providencia">Tomar Providência</option>
               <option value="respondida">Respondida</option>
               <option value="resolvida">Resolvida</option>
               <option value="standby">Stand-by</option>
@@ -409,7 +413,7 @@ td.pc{color:var(--text);font-weight:500}
               <option value="">Todos</option>
               <option value="cadastrada">Cadastrada</option>
               <option value="enviada">Enviada</option>
-              <option value="aguardando">Aguardando</option>
+              <option value="providencia">Tomar Providência</option>
               <option value="respondida">Respondida</option>
               <option value="resolvida">Resolvida</option>
               <option value="standby">Stand-by</option>
@@ -625,7 +629,7 @@ const MONTHS_SHORT=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out',
 const KANBAN_COLS=[
   {id:'cadastrada',label:'Cadastrada',cls:'col-cadastrada'},
   {id:'enviada',label:'Enviada',cls:'col-enviada'},
-  {id:'aguardando',label:'Aguardando Resposta',cls:'col-aguardando'},
+  {id:'providencia',label:'Tomar Providência',cls:'col-providencia'},
   {id:'respondida',label:'Respondida',cls:'col-respondida'},
 ];
 const RESPONDIDA_SUB=[
@@ -638,6 +642,7 @@ const RESPONDIDA_SUB=[
   {id:'arquivada',label:'Arquivada'},
 ];
 const STATUS_RESPONDIDA=['resolvida','standby','ag-cliente','judicial','arquivada','respondida'];
+const ETAPAS_ATIVAS=['cadastrada','enviada','providencia'];
 let respondidaFilter='todos';
 
 const STATUS_LABELS={
@@ -729,40 +734,94 @@ function populateMetricFilters(){
   mm.innerHTML='<option value="">Todos os meses</option>'+MONTHS_PT.map((m,i)=>`<option value="${i}">${m}</option>`).join('');
 }
 
-// ALERTS
+// ALERTS + AUTO-MOVE
 function checkAlerts(){
-  const db=getDB();const alerts=[];
+  const db=getDB();
+  let moved=false;
+  const alerts=[];
+
+  // AUTO-MOVE: notifs with expired prazo → providencia
   db.notifs.forEach(n=>{
-    if(['resolvida','arquivada','judicial'].includes(n.status))return;
     if(!n.envio||!n.prazo)return;
+    if(STATUS_RESPONDIDA.includes(n.status)||n.status==='providencia')return;
     const d=diasR(n.envio,n.prazo);
-    if(d<0)alerts.push({tipo:'Notificação',label:n.cliente+' × '+n.notificado,msg:'Prazo vencido há '+Math.abs(d)+'d. Defina um status ou crie 2ª notificação.',color:'var(--danger)',id:n.id});
-    else if(d<=3)alerts.push({tipo:'Notificação',label:n.cliente+' × '+n.notificado,msg:'Prazo vence em '+d+'d.',color:'var(--warning)',id:n.id});
-  });
-  db.contras.forEach(c=>{
-    if(['resolvida','arquivada'].includes(c.status))return;
-    if(c.enviada&&c.alerta){
-      const d=diasR(c.enviada,c.alerta);
-      if(d<0)alerts.push({tipo:'Contra-notif.',label:c.cliente+' vs '+c.notificante,msg:'Sem retorno há '+Math.abs(d)+'d. Verifique o andamento.',color:'var(--danger)',id:c.id});
-      else if(d<=3)alerts.push({tipo:'Contra-notif.',label:c.cliente+' vs '+c.notificante,msg:'Alerta de retorno em '+d+'d.',color:'var(--warning)',id:c.id});
+    if(d<0){
+      n.status='providencia';
+      n.statusPor='Sistema';
+      n.statusData=today();
+      moved=true;
     }
   });
+
+  // AUTO-MOVE: contras with expired alerta → providencia
+  db.contras.forEach(c=>{
+    if(!c.enviada||!c.alerta)return;
+    if(STATUS_RESPONDIDA.includes(c.status)||c.status==='providencia')return;
+    const d=diasR(c.enviada,c.alerta);
+    if(d<0){
+      c.status='providencia';
+      c.statusPor='Sistema';
+      c.statusData=today();
+      moved=true;
+    }
+  });
+
+  if(moved){saveDB(db);}
+
+  // BUILD ALERTS
+  // Providencia items
+  db.notifs.filter(n=>n.status==='providencia').forEach(n=>{
+    alerts.push({tipo:'Notificação',label:n.cliente+' × '+n.notificado,msg:'Prazo vencido — tomar providência. Crie 2ª notificação ou defina novo status.',color:'var(--danger)',urgente:true});
+  });
+  db.contras.filter(c=>c.status==='providencia').forEach(c=>{
+    alerts.push({tipo:'Contra-notif.',label:c.cliente+' vs '+c.notificante,msg:'Prazo de retorno vencido — tomar providência. Verifique com o notificante.',color:'var(--danger)',urgente:true});
+  });
+
+  // Upcoming (3 days)
+  db.notifs.forEach(n=>{
+    if(!n.envio||!n.prazo||n.status==='providencia'||STATUS_RESPONDIDA.includes(n.status))return;
+    const d=diasR(n.envio,n.prazo);
+    if(d>=0&&d<=3)alerts.push({tipo:'Notificação',label:n.cliente+' × '+n.notificado,msg:'Prazo vence em '+d+'d. Fique atento.',color:'var(--warning)',urgente:false});
+  });
+  db.contras.forEach(c=>{
+    if(!c.enviada||!c.alerta||c.status==='providencia'||STATUS_RESPONDIDA.includes(c.status))return;
+    const d=diasR(c.enviada,c.alerta);
+    if(d>=0&&d<=3)alerts.push({tipo:'Contra-notif.',label:c.cliente+' vs '+c.notificante,msg:'Alerta de retorno em '+d+'d.',color:'var(--warning)',urgente:false});
+  });
+
   const badge=document.getElementById('bellBadge');
-  if(alerts.length>0){badge.textContent=alerts.length;badge.classList.remove('hidden');}
-  else badge.classList.add('hidden');
+  const urgCount=alerts.filter(a=>a.urgente).length;
+  if(alerts.length>0){
+    badge.textContent=alerts.length;
+    badge.classList.remove('hidden');
+    badge.style.background=urgCount>0?'var(--danger)':'var(--warning)';
+  } else {
+    badge.classList.add('hidden');
+  }
+
   const list=document.getElementById('notifList');
-  if(alerts.length===0){list.innerHTML='<div class="no-notifs"><i class="ti ti-check" style="font-size:22px;display:block;margin-bottom:6px;opacity:.4"></i>Nenhum alerta pendente</div>';return;}
-  list.innerHTML=alerts.map(a=>`
+  if(alerts.length===0){
+    list.innerHTML='<div class="no-notifs"><i class="ti ti-check" style="font-size:22px;display:block;margin-bottom:6px;opacity:.4"></i>Nenhum alerta pendente</div>';
+    return;
+  }
+
+  // Urgent first
+  const sorted=[...alerts.filter(a=>a.urgente),...alerts.filter(a=>!a.urgente)];
+  list.innerHTML=sorted.map(a=>`
     <div class="notif-item">
       <div class="notif-item-head">
         <div class="notif-dot" style="background:${a.color}"></div>
-        <div>
-          <div class="notif-item-title">${a.tipo} — ${a.label}</div>
+        <div style="flex:1">
+          <div class="notif-item-title">${a.urgente?'🔴 ':''}<strong>${a.tipo}</strong> — ${a.label}</div>
           <div class="notif-item-sub">${a.msg}</div>
-          <div class="notif-item-action">→ Atualizar status</div>
+          ${a.urgente?`<div class="notif-item-action">→ Ir para Kanban · Tomar Providência</div>`:''}
         </div>
       </div>
     </div>`).join('');
+
+  // If kanban is visible, re-render it to reflect auto-moves
+  if(document.getElementById('page-kanban').style.display!=='none'){renderKanban();}
+  if(document.getElementById('page-painel').style.display!=='none'){renderPainel();}
 }
 
 function toggleBell(){
@@ -788,9 +847,9 @@ function getFilteredItems(){
 
 function renderPainel(){
   const {notifs,contras}=getFilteredItems();
-  const active=notifs.filter(n=>!['resolvida','arquivada'].includes(n.status));
-  const vencidos=active.filter(n=>n.envio&&n.prazo&&diasR(n.envio,n.prazo)<0).length;
-  const urgentes=active.filter(n=>{if(!n.envio||!n.prazo)return false;const d=diasR(n.envio,n.prazo);return d>=0&&d<=3;}).length;
+  const active=notifs.filter(n=>!['resolvida','arquivada','respondida'].includes(n.status));
+  const vencidos=notifs.filter(n=>n.status==='providencia').length;
+  const urgentes=active.filter(n=>{if(n.status==='providencia')return false;if(!n.envio||!n.prazo)return false;const d=diasR(n.envio,n.prazo);return d>=0&&d<=3;}).length;
   const semRet=contras.filter(c=>!['resolvida','arquivada'].includes(c.status)&&c.enviada&&c.alerta&&diasR(c.enviada,c.alerta)<0).length;
 
   document.getElementById('metricsGrid').innerHTML=`
@@ -805,9 +864,9 @@ function renderPainel(){
       <div class="metric-sub">Clique para ver casos</div>
     </div>
     <div class="metric-card" onclick="openMetric('vencidos')">
-      <div class="metric-label">Prazos vencidos</div>
+      <div class="metric-label">Tomar Providência ⚡</div>
       <div class="metric-val ${vencidos>0?'danger':'success'}">${vencidos}</div>
-      <div class="metric-sub">Requerem ação imediata</div>
+      <div class="metric-sub">Cards movidos automaticamente</div>
     </div>
     <div class="metric-card" onclick="openMetric('urgentes')">
       <div class="metric-label">Urgentes (≤3d)</div>
@@ -822,16 +881,16 @@ function renderPainel(){
 
   const db=getDB();
   const crit=[
-    ...db.notifs.filter(n=>!['resolvida','arquivada','standby'].includes(n.status)&&n.envio&&n.prazo&&diasR(n.envio,n.prazo)<=7).map(n=>({tipo:'Notificação',label:n.cliente+' × '+n.notificado,marca:n.marca,d:diasR(n.envio,n.prazo),resp:n.resp})),
-    ...db.contras.filter(c=>!['resolvida','arquivada','standby'].includes(c.status)&&c.enviada&&c.alerta&&diasR(c.enviada,c.alerta)<=7).map(c=>({tipo:'Contra-notif.',label:c.cliente+' vs '+c.notificante,marca:c.marca,d:diasR(c.enviada,c.alerta),resp:c.resp}))
+    ...db.notifs.filter(n=>!['resolvida','arquivada','standby','respondida'].includes(n.status)&&n.envio&&n.prazo&&diasR(n.envio,n.prazo)<=7).map(n=>({tipo:'Notificação',label:n.cliente+' × '+n.notificado,marca:n.marca,d:diasR(n.envio,n.prazo),resp:n.resp,prov:n.status==='providencia'})),
+    ...db.contras.filter(c=>!['resolvida','arquivada','standby','respondida'].includes(c.status)&&c.enviada&&c.alerta&&diasR(c.enviada,c.alerta)<=7).map(c=>({tipo:'Contra-notif.',label:c.cliente+' vs '+c.notificante,marca:c.marca,d:diasR(c.enviada,c.alerta),resp:c.resp,prov:c.status==='providencia'}))
   ].sort((a,b)=>a.d-b.d);
 
   const cl=document.getElementById('criticalList');
   if(!crit.length){cl.innerHTML='<div class="empty-state"><i class="ti ti-circle-check"></i>Nenhum prazo crítico nos próximos 7 dias</div>';return;}
   cl.innerHTML=crit.map(c=>{
-    const cls=c.d<0?'vencido':c.d<=3?'urgente':'ok';
-    const lbl=c.d<0?'Venceu há '+Math.abs(c.d)+'d':c.d===0?'Vence hoje':'Vence em '+c.d+'d';
-    const dot=c.d<0?'red':c.d<=3?'amber':'green';
+    const cls=c.prov?'vencido':c.d<0?'vencido':c.d<=3?'urgente':'ok';
+    const lbl=c.prov?'⚡ Tomar Providência':c.d<0?'Venceu há '+Math.abs(c.d)+'d':c.d===0?'Vence hoje':'Vence em '+c.d+'d';
+    const dot=c.prov||c.d<0?'red':c.d<=3?'amber':'green';
     return`<div class="tl-item"><div class="tl-dot ${dot}"></div><div class="tl-info"><div class="tl-title">${c.tipo} — ${c.label} <span class="badge ${cls}" style="margin-left:6px">${lbl}</span></div><div class="tl-sub">Marca: ${c.marca||'—'} · Resp: ${c.resp}</div></div></div>`;
   }).join('');
 }
@@ -868,10 +927,12 @@ function renderKanban(){
   // First 3 cols: cadastrada, enviada, aguardando
   let html=KANBAN_COLS.slice(0,3).map(col=>{
     const colItems=items.filter(i=>i.status===col.id);
-    return`<div class="kanban-col ${col.cls}">
+    const isProvid=col.id==='providencia';
+    const hasCards=colItems.length>0;
+    return`<div class="kanban-col ${col.cls}${isProvid&&hasCards?' has-cards':''}">
       <div class="kanban-col-head">
-        <span class="kanban-col-title">${col.label}</span>
-        <span class="kanban-col-count">${colItems.length}</span>
+        <span class="kanban-col-title">${col.label}${isProvid&&hasCards?'<span class="providencia-pulse"></span>':''}</span>
+        <span class="kanban-col-count" style="${isProvid&&hasCards?'background:rgba(240,82,82,.3);color:#f87171':''}">${colItems.length}</span>
       </div>
       <div class="kanban-col-body" data-col="${col.id}"
         ondragover="e=>{e.preventDefault();this.classList.add('drag-over')}"
@@ -931,7 +992,7 @@ function renderKCard(item,idx){
         <optgroup label="Etapas">
           <option value="cadastrada"${item.status==='cadastrada'?' selected':''}>Cadastrada</option>
           <option value="enviada"${item.status==='enviada'?' selected':''}>Enviada</option>
-          <option value="aguardando"${item.status==='aguardando'?' selected':''}>Aguardando</option>
+          <option value="providencia"${item.status==='providencia'?' selected':''}>Tomar Providência</option>
         </optgroup>
         <optgroup label="Respondida / Encerrada">
           <option value="respondida"${item.status==='respondida'?' selected':''}>Respondida</option>
@@ -1219,7 +1280,7 @@ function detailNotif(idx){
         <select id="quickStatus" style="height:32px;font-size:12px">
           <option value="cadastrada">Cadastrada</option>
           <option value="enviada">Enviada</option>
-          <option value="aguardando">Aguardando</option>
+          <option value="providencia">Tomar Providência</option>
           <option value="respondida">Respondida</option>
           <option value="resolvida">Resolvida ✓</option>
           <option value="standby">Stand-by</option>
@@ -1458,7 +1519,7 @@ function detailContra(idx){
         <select id="quickStatusC" style="height:32px;font-size:12px">
           <option value="cadastrada">Cadastrada</option>
           <option value="enviada">Enviada</option>
-          <option value="aguardando">Aguardando</option>
+          <option value="providencia">Tomar Providência</option>
           <option value="respondida">Respondida</option>
           <option value="resolvida">Resolvida ✓</option>
           <option value="standby">Stand-by</option>
