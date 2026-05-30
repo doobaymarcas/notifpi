@@ -601,6 +601,81 @@ td.pc{color:var(--text);font-weight:500}
 </div>
 </div>
 
+
+<!-- MODAL EDITAR NOTIFICAÇÃO -->
+<div class="modal-bg" id="modal-edit-notif">
+<div class="modal wide">
+  <h2><i class="ti ti-pencil"></i>Editar notificação</h2>
+  <div class="sec-div">Identificação</div>
+  <div class="form-grid">
+    <div class="form-row"><label>Cliente (titular)</label><input type="text" id="en-cliente"></div>
+    <div class="form-row"><label>Notificado</label><input type="text" id="en-notificado"></div>
+  </div>
+  <div class="form-grid">
+    <div class="form-row"><label>Marca envolvida</label><input type="text" id="en-marca"></div>
+    <div class="form-row"><label>Responsável</label><select id="en-resp"></select></div>
+  </div>
+  <div class="sec-div">Envio</div>
+  <div class="form-grid">
+    <div class="form-row"><label>Data de envio</label><input type="date" id="en-envio"></div>
+    <div class="form-row"><label>Prazo dado (dias)</label><input type="number" id="en-prazo" min="1"></div>
+  </div>
+  <div class="form-row"><label>Canais</label>
+    <div class="channels-grid">
+      <label class="ch-check" id="ench-email" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-mail"></i>E-mail</label>
+      <label class="ch-check" id="ench-whats" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-brand-whatsapp"></i>WhatsApp</label>
+      <label class="ch-check" id="ench-correio" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-mail-forward"></i>Correios AR</label>
+      <label class="ch-check" id="ench-cartorio" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-building"></i>Cartório</label>
+      <label class="ch-check" id="ench-presencial" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-user-check"></i>Presencial</label>
+    </div>
+  </div>
+  <div class="form-row"><label>Observações</label><textarea id="en-obs"></textarea></div>
+  <div class="modal-footer">
+    <button class="btn" onclick="closeModal('edit-notif')">Cancelar</button>
+    <button class="btn primary" onclick="saveEditNotif()"><i class="ti ti-check"></i>Salvar alterações</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL EDITAR CONTRA-NOTIFICAÇÃO -->
+<div class="modal-bg" id="modal-edit-contra">
+<div class="modal wide">
+  <h2><i class="ti ti-pencil"></i>Editar contra-notificação</h2>
+  <div class="sec-div">Identificação</div>
+  <div class="form-grid">
+    <div class="form-row"><label>Nosso cliente</label><input type="text" id="ec-cliente"></div>
+    <div class="form-row"><label>Empresa notificante</label><input type="text" id="ec-notificante"></div>
+  </div>
+  <div class="form-grid">
+    <div class="form-row"><label>Marca contestada</label><input type="text" id="ec-marca"></div>
+    <div class="form-row"><label>Responsável</label><select id="ec-resp"></select></div>
+  </div>
+  <div class="sec-div">Notificação recebida</div>
+  <div class="form-grid">
+    <div class="form-row"><label>Recebida em</label><input type="date" id="ec-recebida"></div>
+    <div class="form-row"><label>Prazo p/ defesa (dias)</label><input type="number" id="ec-prazo-rec" min="1"></div>
+  </div>
+  <div class="sec-div">Nossa resposta</div>
+  <div class="form-grid">
+    <div class="form-row"><label>Contra-notif. enviada em</label><input type="date" id="ec-enviada"></div>
+    <div class="form-row"><label>Aguardar retorno por (dias)</label><input type="number" id="ec-alerta" min="1"></div>
+  </div>
+  <div class="form-row"><label>Canais</label>
+    <div class="channels-grid">
+      <label class="ch-check" id="ecch-email" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-mail"></i>E-mail</label>
+      <label class="ch-check" id="ecch-whats" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-brand-whatsapp"></i>WhatsApp</label>
+      <label class="ch-check" id="ecch-correio" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-mail-forward"></i>Correios AR</label>
+      <label class="ch-check" id="ecch-cartorio" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-building"></i>Cartório</label>
+    </div>
+  </div>
+  <div class="form-row"><label>Observações</label><textarea id="ec-obs"></textarea></div>
+  <div class="modal-footer">
+    <button class="btn" onclick="closeModal('edit-contra')">Cancelar</button>
+    <button class="btn primary" onclick="saveEditContra()"><i class="ti ti-check"></i>Salvar alterações</button>
+  </div>
+</div>
+</div>
+
 <!-- MODAL DETALHE -->
 <div class="modal-bg" id="modal-detail">
 <div class="modal wide" id="detailContent"></div>
@@ -988,6 +1063,7 @@ function renderKCard(item,idx){
     </div>
     <div class="kcard-actions">
       <button class="btn sm icon-only" onclick="kanbanType==='notif'?detailNotif(${idx}):detailContra(${idx})" title="Detalhes"><i class="ti ti-eye"></i></button>
+      <button class="btn sm icon-only" onclick="kanbanType==='notif'?openEditNotif(${idx}):openEditContra(${idx})" title="Editar" style="color:var(--accent)"><i class="ti ti-pencil"></i></button>
       <select class="filter-select" style="height:24px;font-size:11px;padding:2px 6px;flex:1" onchange="moveCard(${idx},this.value)">
         <optgroup label="Etapas">
           <option value="cadastrada"${item.status==='cadastrada'?' selected':''}>Cadastrada</option>
@@ -1060,6 +1136,7 @@ function renderNotif(){
       <td style="font-size:11px;color:var(--text3)">${n.criadoPor||'—'}</td>
       <td><div style="display:flex;gap:3px">
         <button class="btn sm icon-only" onclick="detailNotif(${idx})" title="Detalhes"><i class="ti ti-eye"></i></button>
+        <button class="btn sm icon-only" onclick="openEditNotif(${idx})" title="Editar" style="color:var(--accent)"><i class="ti ti-pencil"></i></button>
         <button class="btn sm icon-only" onclick="gerarPDFNotif(${idx})" title="Gerar PDF" style="color:var(--danger)"><i class="ti ti-file-type-pdf"></i></button>
         ${currentUser.role==='admin'?`<button class="btn sm icon-only" onclick="deleteItem('notif',${idx})" style="color:var(--danger)"><i class="ti ti-trash"></i></button>`:''}
       </div></td></tr>`;
@@ -1090,6 +1167,7 @@ function renderContra(){
       <td><span class="badge ${c.status}">${getStatusLabel(c.status)}</span></td>
       <td><div style="display:flex;gap:3px">
         <button class="btn sm icon-only" onclick="detailContra(${idx})"><i class="ti ti-eye"></i></button>
+        <button class="btn sm icon-only" onclick="openEditContra(${idx})" title="Editar" style="color:var(--accent)"><i class="ti ti-pencil"></i></button>
         <button class="btn sm icon-only" onclick="gerarPDFContra(${idx})" title="Gerar PDF" style="color:var(--danger)"><i class="ti ti-file-type-pdf"></i></button>
         ${currentUser.role==='admin'?`<button class="btn sm icon-only" onclick="deleteItem('contra',${idx})" style="color:var(--danger)"><i class="ti ti-trash"></i></button>`:''}
       </div></td></tr>`;
@@ -1290,6 +1368,7 @@ function detailNotif(idx){
         </select>
       </div>
       <button class="btn primary" onclick="const db=getDB();db.notifs[${idx}].status=document.getElementById('quickStatus').value;db.notifs[${idx}].statusPor=currentUser.nome;saveDB(db);closeModal('detail');renderNotif();renderKanban();renderPainel();checkAlerts()"><i class="ti ti-check"></i>Atualizar status</button>
+      <button class="btn" onclick="openEditNotif(${idx})" style="color:var(--accent);border-color:var(--accent)"><i class="ti ti-pencil"></i>Editar</button>
       <button class="btn" onclick="gerarPDFNotif(${idx})" style="color:var(--danger);border-color:var(--danger)"><i class="ti ti-file-type-pdf"></i>Gerar PDF</button>
       <button class="btn" onclick="closeModal('detail')">Fechar</button>
     </div>`;
@@ -1529,11 +1608,92 @@ function detailContra(idx){
         </select>
       </div>
       <button class="btn primary" onclick="const db=getDB();db.contras[${idx}].status=document.getElementById('quickStatusC').value;db.contras[${idx}].statusPor=currentUser.nome;saveDB(db);closeModal('detail');renderContra();renderKanban();renderPainel();checkAlerts()"><i class="ti ti-check"></i>Atualizar status</button>
+      <button class="btn" onclick="openEditContra(${idx})" style="color:var(--accent);border-color:var(--accent)"><i class="ti ti-pencil"></i>Editar</button>
       <button class="btn" onclick="gerarPDFContra(${idx})" style="color:var(--danger);border-color:var(--danger)"><i class="ti ti-file-type-pdf"></i>Gerar PDF</button>
       <button class="btn" onclick="closeModal('detail')">Fechar</button>
     </div>`;
   document.getElementById('modal-detail').classList.add('open');
 }
+
+// EDIT FUNCTIONS
+let editIdx = null;
+
+function openEditNotif(idx){
+  const db=getDB(); const n=db.notifs[idx]; editIdx=idx;
+  document.getElementById('en-cliente').value=n.cliente||'';
+  document.getElementById('en-notificado').value=n.notificado||'';
+  document.getElementById('en-marca').value=n.marca||'';
+  document.getElementById('en-envio').value=n.envio||'';
+  document.getElementById('en-prazo').value=n.prazo||'';
+  document.getElementById('en-obs').value=n.obs||'';
+  // populate resp
+  const db2=getDB();
+  document.getElementById('en-resp').innerHTML=db2.users.map(u=>`<option value="${u.nome}"${u.nome===n.resp?' selected':''}>${u.nome}</option>`).join('');
+  // channels
+  resetChannels('ench');
+  const chMap={'E-mail':'ench-email','WhatsApp':'ench-whats','Correios AR':'ench-correio','Cartório':'ench-cartorio','Presencial':'ench-presencial'};
+  (n.channels||[]).forEach(ch=>{const el=document.getElementById(chMap[ch]);if(el)el.classList.add('selected');});
+  closeModal('detail');
+  document.getElementById('modal-edit-notif').classList.add('open');
+}
+
+function saveEditNotif(){
+  if(editIdx===null)return;
+  const db=getDB(); const n=db.notifs[editIdx];
+  n.cliente=document.getElementById('en-cliente').value.trim();
+  n.notificado=document.getElementById('en-notificado').value.trim();
+  n.marca=document.getElementById('en-marca').value.trim();
+  n.resp=document.getElementById('en-resp').value;
+  n.envio=document.getElementById('en-envio').value;
+  n.prazo=document.getElementById('en-prazo').value;
+  n.obs=document.getElementById('en-obs').value;
+  const chMap={'E-mail':'ench-email','WhatsApp':'ench-whats','Correios AR':'ench-correio','Cartório':'ench-cartorio','Presencial':'ench-presencial'};
+  n.channels=Object.entries(chMap).filter(([k,v])=>document.getElementById(v)&&document.getElementById(v).classList.contains('selected')).map(([k])=>k);
+  n.editadoPor=currentUser.nome;
+  n.editadoEm=new Date().toISOString();
+  saveDB(db);closeModal('edit-notif');renderNotif();renderKanban();renderPainel();checkAlerts();
+  editIdx=null;
+}
+
+function openEditContra(idx){
+  const db=getDB(); const c=db.contras[idx]; editIdx=idx;
+  document.getElementById('ec-cliente').value=c.cliente||'';
+  document.getElementById('ec-notificante').value=c.notificante||'';
+  document.getElementById('ec-marca').value=c.marca||'';
+  document.getElementById('ec-recebida').value=c.recebida||'';
+  document.getElementById('ec-prazo-rec').value=c.prazoRec||'';
+  document.getElementById('ec-enviada').value=c.enviada||'';
+  document.getElementById('ec-alerta').value=c.alerta||'';
+  document.getElementById('ec-obs').value=c.obs||'';
+  const db2=getDB();
+  document.getElementById('ec-resp').innerHTML=db2.users.map(u=>`<option value="${u.nome}"${u.nome===c.resp?' selected':''}>${u.nome}</option>`).join('');
+  resetChannels('ecch');
+  const chMap={'E-mail':'ecch-email','WhatsApp':'ecch-whats','Correios AR':'ecch-correio','Cartório':'ecch-cartorio'};
+  (c.channels||[]).forEach(ch=>{const el=document.getElementById(chMap[ch]);if(el)el.classList.add('selected');});
+  closeModal('detail');
+  document.getElementById('modal-edit-contra').classList.add('open');
+}
+
+function saveEditContra(){
+  if(editIdx===null)return;
+  const db=getDB(); const c=db.contras[editIdx];
+  c.cliente=document.getElementById('ec-cliente').value.trim();
+  c.notificante=document.getElementById('ec-notificante').value.trim();
+  c.marca=document.getElementById('ec-marca').value.trim();
+  c.resp=document.getElementById('ec-resp').value;
+  c.recebida=document.getElementById('ec-recebida').value;
+  c.prazoRec=document.getElementById('ec-prazo-rec').value;
+  c.enviada=document.getElementById('ec-enviada').value;
+  c.alerta=document.getElementById('ec-alerta').value;
+  c.obs=document.getElementById('ec-obs').value;
+  const chMap={'E-mail':'ecch-email','WhatsApp':'ecch-whats','Correios AR':'ecch-correio','Cartório':'ecch-cartorio'};
+  c.channels=Object.entries(chMap).filter(([k,v])=>document.getElementById(v)&&document.getElementById(v).classList.contains('selected')).map(([k])=>k);
+  c.editadoPor=currentUser.nome;
+  c.editadoEm=new Date().toISOString();
+  saveDB(db);closeModal('edit-contra');renderContra();renderKanban();renderPainel();checkAlerts();
+  editIdx=null;
+}
+
 </script>
 </body>
 </html>
