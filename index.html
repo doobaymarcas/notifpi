@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NotifPI — Controle de Notificações</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+:root {
+  --bg: #0f0f11;
+  --bg2: #17171a;
+  --bg3: #1e1e23;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text: #f0f0f2;
+  --text2: #9191a0;
+  --text3: #5a5a6a;
+  --accent: #4f6ef7;
+  --accent2: #3a55d4;
+  --accent-glow: rgba(79,110,247,0.15);
+  --success: #2dd4a0;
+  --warning: #f5a623;
+  --danger: #f05252;
+  --amber: #f5a623;
+  --font: 'DM Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
+  --radius: 10px;
+  --radius-lg: 16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
+
+/* ---- LOGIN ---- */
+#loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg);position:relative;overflow:hidden}
+#loginScreen::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(79,110,247,0.08) 0%,transparent 70%);top:-100px;left:-100px;pointer-events:none}
+#loginScreen::after{content:'';position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(79,110,247,0.05) 0%,transparent 70%);bottom:-50px;right:-50px;pointer-events:none}
+.login-card{background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius-lg);padding:2.5rem;width:380px;position:relative;z-index:1}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:2rem}
+.login-logo-icon{width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff}
+.login-logo-text{font-size:18px;font-weight:600;letter-spacing:-0.3px}
+.login-logo-sub{font-size:11px;color:var(--text2);letter-spacing:.05em;font-family:var(--mono)}
+.login-title{font-size:22px;font-weight:600;margin-bottom:4px}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:1.75rem}
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:500;letter-spacing:.03em}
+.field input{width:100%;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:10px 14px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;transition:border-color .2s}
+.field input:focus{border-color:var(--accent)}
+.btn-login{width:100%;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);padding:12px;font-family:var(--font);font-size:14px;font-weight:500;cursor:pointer;transition:background .2s;margin-top:.5rem}
+.btn-login:hover{background:var(--accent2)}
+.login-error{background:rgba(240,82,82,0.1);border:0.5px solid rgba(240,82,82,0.3);border-radius:8px;padding:10px 14px;font-size:13px;color:#f05252;margin-bottom:1rem;display:none}
+.login-error.show{display:block}
+
+/* ---- APP SHELL ---- */
+#app{display:none;min-height:100vh}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:220px;background:var(--bg2);border-right:0.5px solid var(--border);display:flex;flex-direction:column;padding:1.25rem 0;z-index:50}
+.sidebar-logo{padding:0 1.25rem 1.5rem;display:flex;align-items:center;gap:8px;border-bottom:0.5px solid var(--border)}
+.sidebar-logo-icon{width:30px;height:30px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;flex-shrink:0}
+.sidebar-logo-text{font-size:15px;font-weight:600}
+.sidebar-logo-sub{font-size:9px;color:var(--text3);font-family:var(--mono);letter-spacing:.05em}
+nav{flex:1;padding:1rem 0}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 1.25rem;cursor:pointer;color:var(--text2);transition:all .15s;font-size:13px;font-weight:400;border-left:2px solid transparent}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,0.03)}
+.nav-item.active{color:var(--accent);background:var(--accent-glow);border-left-color:var(--accent);font-weight:500}
+.nav-item i{font-size:16px;flex-shrink:0}
+.sidebar-footer{padding:1rem 1.25rem;border-top:0.5px solid var(--border)}
+.user-info{display:flex;align-items:center;gap:8px}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent-glow);border:1px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--accent);flex-shrink:0}
+.user-name{font-size:12px;font-weight:500;color:var(--text)}
+.user-role{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.btn-logout{margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;border-radius:4px}
+.btn-logout:hover{color:var(--danger)}
+
+.main{margin-left:220px;padding:2rem;min-height:100vh}
+.page-header{margin-bottom:1.75rem}
+.page-title{font-size:20px;font-weight:600;letter-spacing:-0.3px}
+.page-sub{font-size:13px;color:var(--text2);margin-top:3px}
+
+/* ---- METRICS ---- */
+.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.75rem}
+.metric-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem}
+.metric-label{font-size:11px;color:var(--text3);font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+.metric-val{font-size:28px;font-weight:600;letter-spacing:-1px}
+.metric-val.danger{color:var(--danger)}
+.metric-val.warning{color:var(--warning)}
+.metric-val.success{color:var(--success)}
+.metric-val.accent{color:var(--accent)}
+.metric-sub{font-size:11px;color:var(--text3);margin-top:4px}
+
+/* ---- ALERT BANNER ---- */
+.alert-banner{background:rgba(240,82,82,0.08);border:0.5px solid rgba(240,82,82,0.25);border-radius:var(--radius);padding:10px 16px;font-size:13px;color:#f9a8a8;margin-bottom:1.25rem;display:none;align-items:center;gap:8px}
+.alert-banner.show{display:flex}
+
+/* ---- TABLES ---- */
+.card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.card-header{padding:1rem 1.25rem;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.card-title{font-size:13px;font-weight:500}
+.toolbar{display:flex;gap:8px;align-items:center;flex:1;flex-wrap:wrap}
+input[type=text],input[type=number],input[type=date],input[type=time],input[type=email],input[type=password],select,textarea{background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);padding:8px 12px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;transition:border-color .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+select option{background:var(--bg3)}
+.search-input{flex:1;min-width:160px;height:34px}
+.filter-select{height:34px;min-width:140px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius);border:0.5px solid var(--border2);background:var(--bg3);color:var(--text);cursor:pointer;font-family:var(--font);font-size:13px;font-weight:400;transition:all .15s;white-space:nowrap;height:34px}
+.btn:hover{border-color:var(--border2);background:var(--bg2);color:var(--text)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent2)}
+.btn.sm{height:28px;padding:4px 10px;font-size:12px}
+.btn.icon-only{width:28px;padding:0;justify-content:center}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:10px 16px;font-size:11px;font-weight:500;color:var(--text3);font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;border-bottom:0.5px solid var(--border);white-space:nowrap}
+td{padding:10px 16px;border-bottom:0.5px solid var(--border);font-size:13px;color:var(--text2);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.015)}
+td.primary-col{color:var(--text);font-weight:500}
+.td-actions{display:flex;gap:4px}
+
+/* ---- BADGES ---- */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:500;font-family:var(--mono);white-space:nowrap}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;display:inline-block;flex-shrink:0}
+.badge.vencido{background:rgba(240,82,82,0.12);color:#f87171}.badge.vencido::before{background:#f05252}
+.badge.urgente{background:rgba(245,166,35,0.12);color:#fbbf24}.badge.urgente::before{background:#f5a623}
+.badge.ok{background:rgba(45,212,160,0.12);color:#34d399}.badge.ok::before{background:#2dd4a0}
+.badge.aguardando{background:rgba(79,110,247,0.12);color:#818cf8}.badge.aguardando::before{background:#4f6ef7}
+.badge.respondido{background:rgba(45,212,160,0.12);color:#34d399}.badge.respondido::before{background:#2dd4a0}
+.badge.admin{background:rgba(245,166,35,0.12);color:#fbbf24;font-size:10px}
+.badge.user{background:rgba(255,255,255,0.06);color:var(--text3);font-size:10px}
+
+/* ---- MODAL ---- */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius-lg);padding:1.75rem;width:520px;max-width:95vw;max-height:88vh;overflow-y:auto}
+.modal.wide{width:600px}
+.modal h2{font-size:16px;font-weight:600;margin-bottom:1.5rem;display:flex;align-items:center;gap:8px}
+.modal h2 i{color:var(--accent)}
+.form-row{margin-bottom:1rem}
+.form-row label{display:block;font-size:11px;font-weight:500;color:var(--text3);font-family:var(--mono);letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px}
+.form-row input,.form-row select,.form-row textarea{width:100%}
+.form-row textarea{min-height:72px;resize:vertical;line-height:1.5}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:1.5rem;padding-top:1rem;border-top:0.5px solid var(--border)}
+.progress-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:8px}
+.progress-fill{height:100%;border-radius:2px;transition:width .3s}
+
+/* ---- TIMELINE ITEMS ---- */
+.tl-item{display:flex;gap:12px;padding:12px 0;border-bottom:0.5px solid var(--border)}
+.tl-item:last-child{border-bottom:none}
+.tl-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.tl-dot.blue{background:var(--accent)}
+.tl-dot.green{background:var(--success)}
+.tl-dot.red{background:var(--danger)}
+.tl-dot.amber{background:var(--warning)}
+.tl-info{flex:1}
+.tl-title{font-size:13px;font-weight:500;color:var(--text)}
+.tl-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.empty-state{text-align:center;padding:3rem;color:var(--text3);font-size:13px}
+.empty-state i{font-size:28px;display:block;margin-bottom:8px;opacity:.4}
+
+/* ---- LOADING ---- */
+.loading{display:flex;align-items:center;justify-content:center;gap:8px;padding:2rem;color:var(--text3);font-size:13px}
+.spinner{width:16px;height:16px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---- DETAIL ---- */
+.detail-section{margin-bottom:1.25rem}
+.detail-section h3{font-size:10px;font-weight:500;color:var(--text3);font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:0.5px solid var(--border)}
+.kv{display:flex;gap:8px;padding:5px 0;font-size:13px}
+.kv .k{color:var(--text3);min-width:140px;flex-shrink:0}
+.kv .v{color:var(--text);font-weight:500}
+
+/* ---- LOG BADGE ---- */
+.log-entry{font-size:11px;color:var(--text3);font-family:var(--mono);padding:3px 0;border-bottom:0.5px solid var(--border)}
+.log-entry:last-child{border-bottom:none}
+</style>
+</head>
+<body>
+
+<!-- CONFIG: Edite aqui com sua chave de API do Google Sheets -->
+<script>
+const SHEETS_CONFIG = {
+  // Cole aqui a URL do seu Google Apps Script (veja o arquivo CONFIGURACAO.md)
+  SCRIPT_URL: 'COLE_AQUI_A_URL_DO_APPS_SCRIPT',
+  // Senha do admin (altere após o primeiro login)
+  ADMIN_USER: 'admin',
+  ADMIN_PASS: 'notifpi2024'
+};
+</script>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon"><i class="ti ti-brand-trademark" aria-hidden="true"></i></div>
+      <div>
+        <div class="login-logo-text">NotifPI</div>
+        <div class="login-logo-sub">PROPRIEDADE INTELECTUAL</div>
+      </div>
+    </div>
+    <div class="login-title">Bem-vindo de volta</div>
+    <div class="login-sub">Acesso restrito à equipe autorizada</div>
+    <div id="loginError" class="login-error"></div>
+    <div class="field"><label>Usuário</label><input type="text" id="loginUser" placeholder="seu.usuario" autocomplete="username"></div>
+    <div class="field"><label>Senha</label><input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"></div>
+    <button class="btn-login" onclick="doLogin()"><i class="ti ti-login" style="margin-right:6px"></i>Entrar</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><i class="ti ti-brand-trademark" aria-hidden="true"></i></div>
+      <div>
+        <div class="sidebar-logo-text">NotifPI</div>
+        <div class="sidebar-logo-sub">PROPRIEDADE INTELECTUAL</div>
+      </div>
+    </div>
+    <nav>
+      <div class="nav-item active" onclick="showPage('painel')" id="nav-painel"><i class="ti ti-layout-dashboard"></i> Painel</div>
+      <div class="nav-item" onclick="showPage('notificacoes')" id="nav-notificacoes"><i class="ti ti-send"></i> Notificações enviadas</div>
+      <div class="nav-item" onclick="showPage('contra')" id="nav-contra"><i class="ti ti-inbox"></i> Contra-notificações</div>
+      <div class="nav-item" onclick="showPage('emails')" id="nav-emails"><i class="ti ti-mail"></i> E-mails / follow-up</div>
+      <div class="nav-item" id="nav-usuarios" style="display:none" onclick="showPage('usuarios')"><i class="ti ti-users"></i> Usuários</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="sidebarAvatar">--</div>
+        <div>
+          <div class="user-name" id="sidebarName">—</div>
+          <div class="user-role" id="sidebarRole">—</div>
+        </div>
+        <button class="btn-logout" onclick="doLogout()" title="Sair"><i class="ti ti-logout" style="font-size:15px"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- PAINEL -->
+    <div id="page-painel">
+      <div class="page-header">
+        <div class="page-title">Painel geral</div>
+        <div class="page-sub">Visão consolidada de todos os casos ativos</div>
+      </div>
+      <div id="alertBanner" class="alert-banner"><i class="ti ti-alert-triangle"></i><span id="alertText"></span></div>
+      <div class="metrics-grid" id="metricsGrid"></div>
+      <div class="card">
+        <div class="card-header"><span class="card-title"><i class="ti ti-clock-exclamation" style="margin-right:6px;color:var(--warning)"></i>Prazos críticos — próximos 7 dias</span></div>
+        <div style="padding:0 1.25rem" id="criticalList"></div>
+      </div>
+    </div>
+
+    <!-- NOTIFICAÇÕES -->
+    <div id="page-notificacoes" style="display:none">
+      <div class="page-header">
+        <div class="page-title">Notificações extrajudiciais</div>
+        <div class="page-sub">Notificações enviadas pelo escritório em nome de clientes</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="toolbar">
+            <input type="text" class="search-input" id="searchNotif" placeholder="Buscar por cliente, notificado ou marca…" oninput="renderNotif()">
+            <select class="filter-select" id="filterStatus" onchange="renderNotif()">
+              <option value="">Todos os status</option>
+              <option value="aguardando">Aguardando</option>
+              <option value="vencido">Vencido</option>
+              <option value="respondido">Respondido</option>
+            </select>
+          </div>
+          <button class="btn primary" onclick="openModal('notif')"><i class="ti ti-plus"></i> Nova notificação</button>
+        </div>
+        <div id="notifTableWrap"></div>
+      </div>
+    </div>
+
+    <!-- CONTRA-NOTIFICAÇÕES -->
+    <div id="page-contra" style="display:none">
+      <div class="page-header">
+        <div class="page-title">Contra-notificações</div>
+        <div class="page-sub">Casos em que nossos clientes foram notificados e respondemos</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="toolbar">
+            <input type="text" class="search-input" id="searchContra" placeholder="Buscar…" oninput="renderContra()">
+            <select class="filter-select" id="filterContra" onchange="renderContra()">
+              <option value="">Todos</option>
+              <option value="aguardando">Aguardando retorno</option>
+              <option value="respondido">Encerrado</option>
+            </select>
+          </div>
+          <button class="btn primary" onclick="openModal('contra')"><i class="ti ti-plus"></i> Nova contra-notificação</button>
+        </div>
+        <div id="contraTableWrap"></div>
+      </div>
+    </div>
+
+    <!-- EMAILS -->
+    <div id="page-emails" style="display:none">
+      <div class="page-header">
+        <div class="page-title">E-mails e follow-ups</div>
+        <div class="page-sub">Registro de todas as comunicações por caso</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="toolbar">
+            <input type="text" class="search-input" id="searchEmail" placeholder="Buscar…" oninput="renderEmails()">
+            <select class="filter-select" id="filterEmailType" onchange="renderEmails()">
+              <option value="">Todos os tipos</option>
+              <option value="followup">Follow-up</option>
+              <option value="cobranca">Cobrança de retorno</option>
+              <option value="2anotif">2ª notificação</option>
+            </select>
+          </div>
+          <button class="btn primary" onclick="openModal('email')"><i class="ti ti-plus"></i> Registrar e-mail</button>
+        </div>
+        <div id="emailTableWrap"></div>
+      </div>
+    </div>
+
+    <!-- USUÁRIOS (admin) -->
+    <div id="page-usuarios" style="display:none">
+      <div class="page-header">
+        <div class="page-title">Gerenciar usuários</div>
+        <div class="page-sub">Apenas administradores podem criar e remover acessos</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Usuários cadastrados</span>
+          <button class="btn primary" onclick="openModal('usuario')"><i class="ti ti-user-plus"></i> Novo usuário</button>
+        </div>
+        <div id="usersTableWrap"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOTIFICAÇÃO -->
+<div class="modal-bg" id="modal-notif">
+<div class="modal">
+  <h2><i class="ti ti-send"></i>Nova notificação extrajudicial</h2>
+  <div class="form-grid">
+    <div class="form-row"><label>Cliente (titular da marca)</label><input type="text" id="n-cliente" placeholder="Empresa ABC Ltda"></div>
+    <div class="form-row"><label>Notificado</label><input type="text" id="n-notificado" placeholder="Comércio XYZ"></div>
+  </div>
+  <div class="form-grid">
+    <div class="form-row"><label>Marca envolvida</label><input type="text" id="n-marca" placeholder="MARCA FORTE®"></div>
+    <div class="form-row"><label>Responsável</label><select id="n-resp"></select></div>
+  </div>
+  <div class="form-grid">
+    <div class="form-row"><label>Data de envio</label><input type="date" id="n-envio"></div>
+    <div class="form-row"><label>Prazo dado (dias)</label><input type="number" id="n-prazo" min="1" value="10"></div>
+  </div>
+  <div class="form-row"><label>Canal de envio</label>
+    <select id="n-canal"><option>E-mail</option><option>Cartório</option><option>Correios AR</option><option>WhatsApp</option><option>Presencial</option></select>
+  </div>
+  <div class="form-row"><label>Observações</label><textarea id="n-obs" placeholder="Número do processo, detalhes da infração…"></textarea></div>
+  <div class="modal-footer">
+    <button class="btn" onclick="closeModal('notif')">Cancelar</button>
+    <button class="btn primary" onclick="saveNotif()"><i class="ti ti-check"></i> Salvar</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL CONTRA-NOTIFICAÇÃO -->
+<div class="modal-bg" id="modal-contra">
+<div class="modal">
+  <h2><i class="ti ti-inbox"></i>Nova contra-notificação</h2>
+  <div class="form-grid">
+    <div class="form-row"><label>Nosso cliente</label><input type="text" id="c-cliente" placeholder="Empresa DEF"></div>
+    <div class="form-row"><label>Notificante</label><input type="text" id="c-notificante" placeholder="Grupo GHI"></div>
+  </div>
+  <div class="form-grid">
+    <div class="form-row"><label>Marca contestada</label><input type="text" id="c-marca" placeholder="SINAL®"></div>
+    <div class="form-row"><label>Responsável</label><select id="c-resp"></select></div>
+  </div>
+  <div class="form-grid">
+    <div class="form-row"><label>Recebida em</label><input type="date" id="c-recebida"></div>
+    <div class="form-row"><label>Contra-notif. enviada em</label><input type="date" id="c-enviada"></div>
+  </div>
+  <div class="form-row"><label>Alertar se sem retorno após (dias)</label><input type="number" id="c-alerta" min="1" value="15"></div>
+  <div class="form-row"><label>Observações</label><textarea id="c-obs" placeholder="Fundamentos da contestação…"></textarea></div>
+  <div class="modal-footer">
+    <button class="btn" onclick="closeModal('contra')">Cancelar</button>
+    <button class="btn primary" onclick="saveContra()"><i class="ti ti-check"></i> Salvar</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL EMAIL -->
+<div class="modal-bg" id="modal-email">
+<div class="modal">
+  <h2><i class="ti ti-mail"></i>Registrar e-mail / follow-up</h2>
+  <div class="form-row"><label>Caso vinculado</label><input type="text" id="e-caso" placeholder="Ex: Notif. Empresa ABC vs XYZ"></div>
+  <div class="form-grid">
+    <div class="form-row"><label>Tipo</label>
+      <select id="e-tipo"><option value="followup">Follow-up</option><option value="cobranca">Cobrança de retorno</option><option value="2anotif">2ª notificação</option></select>
+    </div>
+    <div class="form-row"><label>Quem enviou</label><select id="e-quem"></select></div>
+  </div>
+  <div class="form-grid">
+    <div class="form-row"><label>Data</label><input type="date" id="e-data"></div>
+    <div class="form-row"><label>Horário</label><input type="time" id="e-hora"></div>
+  </div>
+  <div class="form-row"><label>Destinatário (e-mail)</label><input type="email" id="e-dest" placeholder="contato@empresa.com.br"></div>
+  <div class="form-row"><label>Visualizado por (membros que viram)</label><input type="text" id="e-viu" placeholder="Ex: Ana, Bruno"></div>
+  <div class="form-row"><label>Observações</label><textarea id="e-obs" placeholder="Resumo do conteúdo ou resposta recebida…"></textarea></div>
+  <div class="modal-footer">
+    <button class="btn" onclick="closeModal('email')">Cancelar</button>
+    <button class="btn primary" onclick="saveEmail()"><i class="ti ti-check"></i> Salvar</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL USUÁRIO -->
+<div class="modal-bg" id="modal-usuario">
+<div class="modal">
+  <h2><i class="ti ti-user-plus"></i>Novo usuário</h2>
+  <div class="form-grid">
+    <div class="form-row"><label>Nome completo</label><input type="text" id="u-nome" placeholder="Ana Silva"></div>
+    <div class="form-row"><label>Nome de usuário</label><input type="text" id="u-user" placeholder="ana.silva"></div>
+  </div>
+  <div class="form-grid">
+    <div class="form-row"><label>Senha inicial</label><input type="text" id="u-pass" placeholder="senha123"></div>
+    <div class="form-row"><label>Perfil</label>
+      <select id="u-role"><option value="user">Usuário</option><option value="admin">Administrador</option></select>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn" onclick="closeModal('usuario')">Cancelar</button>
+    <button class="btn primary" onclick="saveUsuario()"><i class="ti ti-check"></i> Criar usuário</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL DETALHE -->
+<div class="modal-bg" id="modal-detail">
+<div class="modal wide" id="detailContent"></div>
+</div>
+
+<script>
+// ============================
+// DATA LAYER (localStorage fallback + Sheets sync)
+// ============================
+const DB_KEY = 'notifpi_db';
+let currentUser = null;
+
+function loadDB(){
+  try {
+    return JSON.parse(localStorage.getItem(DB_KEY)) || initDB();
+  } catch(e) { return initDB(); }
+}
+function initDB(){
+  const db = {
+    users: [
+      {id:'u1', nome:'Administrador', user:'admin', pass:SHEETS_CONFIG.ADMIN_PASS, role:'admin', criado: new Date().toISOString()}
+    ],
+    notifs: [],
+    contras: [],
+    emails: []
+  };
+  saveDB(db);
+  return db;
+}
+function saveDB(db){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+function getDB(){ return loadDB(); }
+
+// ============================
+// AUTH
+// ============================
+document.getElementById('loginPass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('loginUser').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+function doLogin(){
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  if(!user||!pass){showLoginError('Preencha usuário e senha.');return;}
+  const db = getDB();
+  const found = db.users.find(u => u.user===user && u.pass===pass);
+  if(!found){showLoginError('Usuário ou senha incorretos.');return;}
+  currentUser = found;
+  sessionStorage.setItem('notifpi_session', JSON.stringify(found));
+  startApp();
+}
+function showLoginError(msg){
+  const e=document.getElementById('loginError');e.textContent=msg;e.classList.add('show');
+}
+function doLogout(){
+  currentUser=null;sessionStorage.clear();
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('loginPass').value='';
+}
+function startApp(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').style.display='block';
+  const av = document.getElementById('sidebarAvatar');
+  const initials = currentUser.nome.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  av.textContent = initials;
+  document.getElementById('sidebarName').textContent = currentUser.nome;
+  document.getElementById('sidebarRole').textContent = currentUser.role==='admin'?'Administrador':'Usuário';
+  if(currentUser.role==='admin') document.getElementById('nav-usuarios').style.display='flex';
+  populateResponsaveis();
+  showPage('painel');
+}
+
+// Check session on load
+window.addEventListener('DOMContentLoaded', ()=>{
+  const sess = sessionStorage.getItem('notifpi_session');
+  if(sess){ try{ currentUser=JSON.parse(sess); startApp(); }catch(e){} }
+});
+
+// ============================
+// NAVIGATION
+// ============================
+function showPage(p){
+  ['painel','notificacoes','contra','emails','usuarios'].forEach(id=>{
+    const el=document.getElementById('page-'+id);
+    if(el) el.style.display = id===p?'block':'none';
+    const nav=document.getElementById('nav-'+id);
+    if(nav) nav.classList.toggle('active', id===p);
+  });
+  if(p==='painel') renderPainel();
+  if(p==='notificacoes') renderNotif();
+  if(p==='contra') renderContra();
+  if(p==='emails') renderEmails();
+  if(p==='usuarios') renderUsers();
+}
+
+// ============================
+// HELPERS
+// ============================
+function today(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(d){ if(!d)return'—'; const p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+function fmtDateTime(iso){ if(!iso)return'—'; const d=new Date(iso); return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
+function diasRestantes(envio, prazo){
+  const venc=new Date(envio); venc.setDate(venc.getDate()+parseInt(prazo));
+  return Math.ceil((venc-new Date())/(1000*60*60*24));
+}
+function statusNotif(item){
+  if(item.status==='respondido') return {label:'Respondido',cls:'respondido'};
+  const d=diasRestantes(item.envio,item.prazo);
+  if(d<0) return {label:'Vencido há '+Math.abs(d)+'d',cls:'vencido'};
+  if(d<=3) return {label:'Urgente — '+d+'d',cls:'urgente'};
+  return {label:'Aguardando — '+d+'d',cls:'aguardando'};
+}
+function statusContra(item){
+  if(item.status==='respondido') return {label:'Encerrado',cls:'respondido'};
+  if(!item.enviada) return {label:'Aguarda envio',cls:'urgente'};
+  const d=diasRestantes(item.enviada,item.alerta);
+  if(d<0) return {label:'Sem retorno '+Math.abs(d)+'d',cls:'vencido'};
+  if(d<=3) return {label:'Alerta em '+d+'d',cls:'urgente'};
+  return {label:'Aguardando',cls:'aguardando'};
+}
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+
+function populateResponsaveis(){
+  const db=getDB();
+  const names = db.users.map(u=>`<option value="${u.nome}">${u.nome}</option>`).join('');
+  ['n-resp','c-resp','e-quem'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.innerHTML=names;
+  });
+}
+
+// ============================
+// PAINEL
+// ============================
+function renderPainel(){
+  const db=getDB();
+  const vencidos=db.notifs.filter(n=>n.status!=='respondido'&&diasRestantes(n.envio,n.prazo)<0).length;
+  const urgentes=db.notifs.filter(n=>n.status!=='respondido'&&diasRestantes(n.envio,n.prazo)>=0&&diasRestantes(n.envio,n.prazo)<=3).length;
+  const semRetorno=db.contras.filter(c=>c.status!=='respondido'&&c.enviada&&diasRestantes(c.enviada,c.alerta)<0).length;
+  const total=db.notifs.length+db.contras.length;
+
+  document.getElementById('metricsGrid').innerHTML=`
+    <div class="metric-card"><div class="metric-label">Total de casos</div><div class="metric-val accent">${total}</div><div class="metric-sub">${db.notifs.length} notif. + ${db.contras.length} contra-notif.</div></div>
+    <div class="metric-card"><div class="metric-label">Notif. vencidas</div><div class="metric-val ${vencidos>0?'danger':'success'}">${vencidos}</div><div class="metric-sub">Prazo expirado sem resposta</div></div>
+    <div class="metric-card"><div class="metric-label">Prazos urgentes</div><div class="metric-val ${urgentes>0?'warning':'success'}">${urgentes}</div><div class="metric-sub">Vencem em até 3 dias</div></div>
+    <div class="metric-card"><div class="metric-label">Contra-notif. sem retorno</div><div class="metric-val ${semRetorno>0?'danger':'success'}">${semRetorno}</div><div class="metric-sub">Além do prazo de alerta</div></div>`;
+
+  const totalAlerts=vencidos+urgentes+semRetorno;
+  const banner=document.getElementById('alertBanner');
+  if(totalAlerts>0){
+    document.getElementById('alertText').textContent=totalAlerts+' item(s) precisam de atenção: '+[vencidos?vencidos+' notificação(ões) vencida(s)':'',urgentes?urgentes+' prazo(s) urgente(s)':'',semRetorno?semRetorno+' contra-notificação(ões) sem retorno':''].filter(Boolean).join(', ')+'.';
+    banner.classList.add('show');
+  } else banner.classList.remove('show');
+
+  const crit=[
+    ...db.notifs.filter(n=>n.status!=='respondido'&&diasRestantes(n.envio,n.prazo)<=7).map(n=>({tipo:'Notificação',label:n.cliente+' × '+n.notificado,marca:n.marca,d:diasRestantes(n.envio,n.prazo),resp:n.resp})),
+    ...db.contras.filter(c=>c.status!=='respondido'&&c.enviada&&diasRestantes(c.enviada,c.alerta)<=7).map(c=>({tipo:'Contra-notif.',label:c.cliente+' vs '+c.notificante,marca:c.marca,d:diasRestantes(c.enviada,c.alerta),resp:c.resp}))
+  ].sort((a,b)=>a.d-b.d);
+
+  const cl=document.getElementById('criticalList');
+  if(crit.length===0){cl.innerHTML='<div class="empty-state"><i class="ti ti-circle-check"></i>Nenhum prazo crítico nos próximos 7 dias</div>';return;}
+  cl.innerHTML=crit.map(c=>{
+    const cls=c.d<0?'vencido':c.d<=3?'urgente':'ok';
+    const lbl=c.d<0?'Venceu há '+Math.abs(c.d)+'d':c.d===0?'Vence hoje':'Vence em '+c.d+'d';
+    const dotCls=c.d<0?'red':c.d<=3?'amber':'green';
+    return`<div class="tl-item"><div class="tl-dot ${dotCls}"></div><div class="tl-info"><div class="tl-title">${c.tipo} — ${c.label} <span class="badge ${cls}" style="margin-left:6px">${lbl}</span></div><div class="tl-sub">Marca: ${c.marca||'—'} · Resp: ${c.resp}</div></div></div>`;
+  }).join('');
+}
+
+// ============================
+// NOTIFICAÇÕES
+// ============================
+function renderNotif(){
+  const db=getDB();
+  const q=(document.getElementById('searchNotif').value||'').toLowerCase();
+  const st=document.getElementById('filterStatus').value;
+  let rows=db.notifs.filter(n=>{
+    if(q&&![n.cliente,n.notificado,n.marca].some(x=>(x||'').toLowerCase().includes(q)))return false;
+    if(st){
+      const s=statusNotif(n);
+      if(st==='respondido'&&n.status!=='respondido')return false;
+      if(st==='vencido'&&(n.status==='respondido'||diasRestantes(n.envio,n.prazo)>=0))return false;
+      if(st==='aguardando'&&(n.status==='respondido'||diasRestantes(n.envio,n.prazo)<0))return false;
+    }
+    return true;
+  });
+  const wrap=document.getElementById('notifTableWrap');
+  if(rows.length===0){wrap.innerHTML='<div class="empty-state"><i class="ti ti-file-off"></i>Nenhuma notificação encontrada</div>';return;}
+  wrap.innerHTML=`<table><thead><tr><th>Cliente</th><th>Notificado</th><th>Marca</th><th>Envio</th><th>Prazo</th><th>Canal</th><th>Responsável</th><th>Status</th><th>Criado por</th><th></th></tr></thead><tbody>`+
+  rows.map(n=>{
+    const s=statusNotif(n);const idx=db.notifs.indexOf(n);
+    return`<tr>
+      <td class="primary-col">${n.cliente}</td>
+      <td>${n.notificado}</td>
+      <td>${n.marca||'—'}</td>
+      <td>${fmtDate(n.envio)}</td>
+      <td>${n.prazo}d</td>
+      <td>${n.canal}</td>
+      <td>${n.resp}</td>
+      <td><span class="badge ${s.cls}">${s.label}</span></td>
+      <td style="font-size:11px;color:var(--text3)">${n.criadoPor||'—'}</td>
+      <td><div class="td-actions">
+        <button class="btn sm icon-only" onclick="detailNotif(${idx})" title="Detalhes"><i class="ti ti-eye"></i></button>
+        ${n.status!=='respondido'?`<button class="btn sm icon-only" onclick="markResolved('notif',${idx})" title="Marcar respondido" style="color:var(--success)"><i class="ti ti-check"></i></button>`:''}
+        ${currentUser.role==='admin'?`<button class="btn sm icon-only" onclick="deleteItem('notif',${idx})" title="Excluir" style="color:var(--danger)"><i class="ti ti-trash"></i></button>`:''}
+      </div></td></tr>`;
+  }).join('')+'</tbody></table>';
+}
+
+// ============================
+// CONTRA-NOTIFICAÇÕES
+// ============================
+function renderContra(){
+  const db=getDB();
+  const q=(document.getElementById('searchContra').value||'').toLowerCase();
+  const st=document.getElementById('filterContra').value;
+  let rows=db.contras.filter(c=>{
+    if(q&&![c.cliente,c.notificante,c.marca].some(x=>(x||'').toLowerCase().includes(q)))return false;
+    if(st){if(st==='respondido'&&c.status!=='respondido')return false;if(st==='aguardando'&&c.status==='respondido')return false;}
+    return true;
+  });
+  const wrap=document.getElementById('contraTableWrap');
+  if(rows.length===0){wrap.innerHTML='<div class="empty-state"><i class="ti ti-inbox-off"></i>Nenhuma contra-notificação encontrada</div>';return;}
+  wrap.innerHTML=`<table><thead><tr><th>Cliente</th><th>Notificante</th><th>Marca</th><th>Recebida</th><th>Contra-notif.</th><th>Alerta</th><th>Responsável</th><th>Status</th><th>Criado por</th><th></th></tr></thead><tbody>`+
+  rows.map(c=>{
+    const s=statusContra(c);const idx=db.contras.indexOf(c);
+    return`<tr>
+      <td class="primary-col">${c.cliente}</td>
+      <td>${c.notificante}</td>
+      <td>${c.marca||'—'}</td>
+      <td>${fmtDate(c.recebida)}</td>
+      <td>${c.enviada?fmtDate(c.enviada):'<span style="color:var(--warning)">Pendente</span>'}</td>
+      <td>${c.alerta}d após envio</td>
+      <td>${c.resp}</td>
+      <td><span class="badge ${s.cls}">${s.label}</span></td>
+      <td style="font-size:11px;color:var(--text3)">${c.criadoPor||'—'}</td>
+      <td><div class="td-actions">
+        <button class="btn sm icon-only" onclick="detailContra(${idx})" title="Detalhes"><i class="ti ti-eye"></i></button>
+        ${c.status!=='respondido'?`<button class="btn sm icon-only" onclick="markResolved('contra',${idx})" title="Encerrar" style="color:var(--success)"><i class="ti ti-check"></i></button>`:''}
+        ${currentUser.role==='admin'?`<button class="btn sm icon-only" onclick="deleteItem('contra',${idx})" title="Excluir" style="color:var(--danger)"><i class="ti ti-trash"></i></button>`:''}
+      </div></td></tr>`;
+  }).join('')+'</tbody></table>';
+}
+
+// ============================
+// EMAILS
+// ============================
+function renderEmails(){
+  const db=getDB();
+  const q=(document.getElementById('searchEmail').value||'').toLowerCase();
+  const tp=document.getElementById('filterEmailType').value;
+  const tipos={followup:'Follow-up',cobranca:'Cobrança',['2anotif']:'2ª notificação'};
+  let rows=db.emails.filter(e=>{
+    if(q&&![e.caso,e.dest,e.quem].some(x=>(x||'').toLowerCase().includes(q)))return false;
+    if(tp&&e.tipo!==tp)return false;
+    return true;
+  });
+  const wrap=document.getElementById('emailTableWrap');
+  if(rows.length===0){wrap.innerHTML='<div class="empty-state"><i class="ti ti-mail-off"></i>Nenhum e-mail registrado</div>';return;}
+  wrap.innerHTML=`<table><thead><tr><th>Caso vinculado</th><th>Tipo</th><th>Destinatário</th><th>Data / hora</th><th>Enviado por</th><th>Visto por</th><th>Obs.</th><th></th></tr></thead><tbody>`+
+  rows.map(e=>{
+    const idx=db.emails.indexOf(e);
+    return`<tr>
+      <td class="primary-col">${e.caso}</td>
+      <td><span class="badge aguardando">${tipos[e.tipo]||e.tipo}</span></td>
+      <td>${e.dest||'—'}</td>
+      <td>${fmtDate(e.data)} ${e.hora||''}</td>
+      <td>${e.quem}</td>
+      <td>${e.viu||'—'}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text3)">${e.obs||'—'}</td>
+      <td>${currentUser.role==='admin'?`<button class="btn sm icon-only" onclick="deleteItem('email',${idx})" title="Excluir" style="color:var(--danger)"><i class="ti ti-trash"></i></button>`:''}</td></tr>`;
+  }).join('')+'</tbody></table>';
+}
+
+// ============================
+// USUÁRIOS
+// ============================
+function renderUsers(){
+  const db=getDB();
+  const wrap=document.getElementById('usersTableWrap');
+  wrap.innerHTML=`<table><thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Cadastrado em</th><th></th></tr></thead><tbody>`+
+  db.users.map((u,idx)=>`<tr>
+    <td class="primary-col">${u.nome}</td>
+    <td style="font-family:var(--mono);font-size:12px">${u.user}</td>
+    <td><span class="badge ${u.role}">${u.role==='admin'?'Admin':'Usuário'}</span></td>
+    <td style="font-size:12px;color:var(--text3)">${fmtDateTime(u.criado)}</td>
+    <td>${u.user!=='admin'?`<button class="btn sm icon-only" onclick="deleteUser(${idx})" title="Remover usuário" style="color:var(--danger)"><i class="ti ti-user-minus"></i></button>`:''}</td>
+  </tr>`).join('')+'</tbody></table>';
+}
+
+function saveUsuario(){
+  const nome=document.getElementById('u-nome').value.trim();
+  const user=document.getElementById('u-user').value.trim().toLowerCase().replace(/\s+/g,'.');
+  const pass=document.getElementById('u-pass').value.trim();
+  const role=document.getElementById('u-role').value;
+  if(!nome||!user||!pass){alert('Preencha todos os campos.');return;}
+  const db=getDB();
+  if(db.users.find(u=>u.user===user)){alert('Nome de usuário já existe.');return;}
+  db.users.push({id:uid(),nome,user,pass,role,criado:new Date().toISOString()});
+  saveDB(db);closeModal('usuario');renderUsers();populateResponsaveis();
+  ['u-nome','u-user','u-pass'].forEach(id=>document.getElementById(id).value='');
+}
+
+function deleteUser(idx){
+  const db=getDB();
+  if(db.users[idx].user===currentUser.user){alert('Você não pode remover a si mesmo.');return;}
+  if(!confirm('Remover usuário "'+db.users[idx].nome+'"? Esta ação não pode ser desfeita.'))return;
+  db.users.splice(idx,1);saveDB(db);renderUsers();populateResponsaveis();
+}
+
+// ============================
+// CRUD
+// ============================
+function openModal(t){
+  document.getElementById('modal-'+t).classList.add('open');
+  if(t==='notif') document.getElementById('n-envio').value=today();
+  if(t==='contra') document.getElementById('c-recebida').value=today();
+  if(t==='email'){document.getElementById('e-data').value=today();document.getElementById('e-hora').value=new Date().toTimeString().slice(0,5);}
+}
+function closeModal(t){ document.getElementById('modal-'+t).classList.remove('open'); }
+document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');}));
+
+function saveNotif(){
+  const c=document.getElementById('n-cliente').value.trim();
+  const n=document.getElementById('n-notificado').value.trim();
+  if(!c||!n){alert('Preencha cliente e notificado.');return;}
+  const db=getDB();
+  db.notifs.push({id:uid(),cliente:c,notificado:n,marca:document.getElementById('n-marca').value.trim(),resp:document.getElementById('n-resp').value,envio:document.getElementById('n-envio').value,prazo:document.getElementById('n-prazo').value,canal:document.getElementById('n-canal').value,obs:document.getElementById('n-obs').value,status:'aberto',criadoPor:currentUser.nome,criado:new Date().toISOString()});
+  saveDB(db);closeModal('notif');renderNotif();renderPainel();
+  ['n-cliente','n-notificado','n-marca','n-obs'].forEach(id=>document.getElementById(id).value='');
+}
+
+function saveContra(){
+  const c=document.getElementById('c-cliente').value.trim();
+  const n=document.getElementById('c-notificante').value.trim();
+  if(!c||!n){alert('Preencha cliente e notificante.');return;}
+  const db=getDB();
+  db.contras.push({id:uid(),cliente:c,notificante:n,marca:document.getElementById('c-marca').value.trim(),resp:document.getElementById('c-resp').value,recebida:document.getElementById('c-recebida').value,enviada:document.getElementById('c-enviada').value,alerta:document.getElementById('c-alerta').value,obs:document.getElementById('c-obs').value,status:'aberto',criadoPor:currentUser.nome,criado:new Date().toISOString()});
+  saveDB(db);closeModal('contra');renderContra();renderPainel();
+  ['c-cliente','c-notificante','c-marca','c-obs'].forEach(id=>document.getElementById(id).value='');
+}
+
+function saveEmail(){
+  const c=document.getElementById('e-caso').value.trim();
+  if(!c){alert('Informe o caso vinculado.');return;}
+  const db=getDB();
+  db.emails.push({id:uid(),caso:c,tipo:document.getElementById('e-tipo').value,quem:document.getElementById('e-quem').value,data:document.getElementById('e-data').value,hora:document.getElementById('e-hora').value,dest:document.getElementById('e-dest').value,viu:document.getElementById('e-viu').value,obs:document.getElementById('e-obs').value,criadoPor:currentUser.nome,criado:new Date().toISOString()});
+  saveDB(db);closeModal('email');renderEmails();
+  ['e-caso','e-dest','e-viu','e-obs'].forEach(id=>document.getElementById(id).value='');
+}
+
+function markResolved(tipo,idx){
+  const db=getDB();
+  if(tipo==='notif') db.notifs[idx].status='respondido';
+  else db.contras[idx].status='respondido';
+  if(tipo==='notif') db.notifs[idx].resolvidoPor=currentUser.nome;
+  else db.contras[idx].resolvidoPor=currentUser.nome;
+  saveDB(db);
+  if(tipo==='notif') renderNotif(); else renderContra();
+  renderPainel();
+}
+
+function deleteItem(tipo,idx){
+  if(!confirm('Excluir este registro permanentemente?'))return;
+  const db=getDB();
+  if(tipo==='notif') db.notifs.splice(idx,1);
+  else if(tipo==='contra') db.contras.splice(idx,1);
+  else db.emails.splice(idx,1);
+  saveDB(db);
+  if(tipo==='notif') renderNotif();
+  else if(tipo==='contra') renderContra();
+  else renderEmails();
+  renderPainel();
+}
+
+// ============================
+// DETAIL MODALS
+// ============================
+function detailNotif(idx){
+  const db=getDB();const n=db.notifs[idx];const s=statusNotif(n);
+  const d=diasRestantes(n.envio,n.prazo);
+  const pct=Math.min(100,Math.max(0,Math.round((1-(d/parseInt(n.prazo)))*100)));
+  const fillColor=d<0?'var(--danger)':d<=3?'var(--warning)':'var(--success)';
+  document.getElementById('detailContent').innerHTML=`
+    <h2><i class="ti ti-file-description"></i>Notificação — ${n.cliente}</h2>
+    <div class="detail-section"><h3>Identificação</h3>
+      <div class="kv"><span class="k">Cliente (titular)</span><span class="v">${n.cliente}</span></div>
+      <div class="kv"><span class="k">Notificado</span><span class="v">${n.notificado}</span></div>
+      <div class="kv"><span class="k">Marca</span><span class="v">${n.marca||'—'}</span></div>
+      <div class="kv"><span class="k">Responsável</span><span class="v">${n.resp}</span></div>
+      <div class="kv"><span class="k">Criado por</span><span class="v">${n.criadoPor||'—'} em ${fmtDateTime(n.criado)}</span></div>
+      ${n.resolvidoPor?`<div class="kv"><span class="k">Resolvido por</span><span class="v">${n.resolvidoPor}</span></div>`:''}
+    </div>
+    <div class="detail-section"><h3>Prazo e canal</h3>
+      <div class="kv"><span class="k">Enviada em</span><span class="v">${fmtDate(n.envio)}</span></div>
+      <div class="kv"><span class="k">Canal</span><span class="v">${n.canal}</span></div>
+      <div class="kv"><span class="k">Prazo dado</span><span class="v">${n.prazo} dias</span></div>
+      <div class="kv"><span class="k">Status</span><span class="v"><span class="badge ${s.cls}">${s.label}</span></span></div>
+      <div style="margin-top:10px">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-family:var(--mono)">${pct}% do prazo decorrido</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${fillColor}"></div></div>
+      </div>
+    </div>
+    ${n.obs?`<div class="detail-section"><h3>Observações</h3><p style="font-size:13px;color:var(--text2);line-height:1.6">${n.obs}</p></div>`:''}
+    <div class="modal-footer">
+      ${n.status!=='respondido'?`<button class="btn primary" onclick="markResolved('notif',${idx});document.getElementById('modal-detail').classList.remove('open');"><i class="ti ti-check"></i> Marcar como respondido</button>`:''}
+      <button class="btn" onclick="document.getElementById('modal-detail').classList.remove('open')">Fechar</button>
+    </div>`;
+  document.getElementById('modal-detail').classList.add('open');
+}
+
+function detailContra(idx){
+  const db=getDB();const c=db.contras[idx];const s=statusContra(c);
+  document.getElementById('detailContent').innerHTML=`
+    <h2><i class="ti ti-inbox"></i>Contra-notificação — ${c.cliente}</h2>
+    <div class="detail-section"><h3>Identificação</h3>
+      <div class="kv"><span class="k">Nosso cliente</span><span class="v">${c.cliente}</span></div>
+      <div class="kv"><span class="k">Notificante</span><span class="v">${c.notificante}</span></div>
+      <div class="kv"><span class="k">Marca contestada</span><span class="v">${c.marca||'—'}</span></div>
+      <div class="kv"><span class="k">Responsável</span><span class="v">${c.resp}</span></div>
+      <div class="kv"><span class="k">Criado por</span><span class="v">${c.criadoPor||'—'} em ${fmtDateTime(c.criado)}</span></div>
+    </div>
+    <div class="detail-section"><h3>Datas e alerta</h3>
+      <div class="kv"><span class="k">Recebida em</span><span class="v">${fmtDate(c.recebida)}</span></div>
+      <div class="kv"><span class="k">Contra-notif. enviada</span><span class="v">${c.enviada?fmtDate(c.enviada):'Pendente'}</span></div>
+      <div class="kv"><span class="k">Prazo de alerta</span><span class="v">${c.alerta} dias após envio</span></div>
+      <div class="kv"><span class="k">Status</span><span class="v"><span class="badge ${s.cls}">${s.label}</span></span></div>
+    </div>
+    ${c.obs?`<div class="detail-section"><h3>Observações</h3><p style="font-size:13px;color:var(--text2);line-height:1.6">${c.obs}</p></div>`:''}
+    <div class="modal-footer">
+      ${c.status!=='respondido'?`<button class="btn primary" onclick="markResolved('contra',${idx});document.getElementById('modal-detail').classList.remove('open');"><i class="ti ti-check"></i> Encerrar caso</button>`:''}
+      <button class="btn" onclick="document.getElementById('modal-detail').classList.remove('open')">Fechar</button>
+    </div>`;
+  document.getElementById('modal-detail').classList.add('open');
+}
+</script>
+</body>
+</html>
