@@ -247,6 +247,7 @@ td.pc{color:var(--text);font-weight:500}
 .col-providencia.has-cards .kanban-col-body{border-color:rgba(240,82,82,.5);box-shadow:0 0 0 1px rgba(240,82,82,.2) inset}
 .providencia-pulse{width:8px;height:8px;border-radius:50%;background:var(--danger);animation:pulse-red 1.5s ease-in-out infinite;flex-shrink:0}
 @keyframes pulse-red{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+@keyframes spin{to{transform:rotate(360deg)}}
 .col-respondida .kanban-col-head{background:rgba(45,212,160,.08)}
 .col-respondida .kanban-col-title{color:#34d399}
 .col-resolvida .kanban-col-head{background:rgba(45,212,160,.06)}
@@ -288,6 +289,10 @@ td.pc{color:var(--text);font-weight:500}
   <div class="topbar" style="left:220px">
     <span class="topbar-title" id="topbarTitle">Painel</span>
     <div class="topbar-right">
+      <div id="syncIndicator" style="display:flex;align-items:center;gap:5px;padding:4px 10px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--r)">
+        <i class="ti ti-database" style="font-size:13px;color:var(--text3)"></i>
+        <span style="font-size:11px;color:var(--text3);font-family:var(--mono)">Local</span>
+      </div>
       <div class="bell-wrap">
         <div class="bell-btn" onclick="toggleBell()" id="bellBtn">
           <i class="ti ti-bell"></i>
@@ -692,6 +697,78 @@ td.pc{color:var(--text);font-weight:500}
 
 <script>
 const DB_KEY='doobay_v3';
+// ---- GOOGLE SHEETS SYNC ----
+// Paste your Apps Script URL below after deploying
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4eUFnOQP-1Qll9YQltBLaHBQ2iCy8LZjQfqjcZlQWE0tiA4S9YdeHctnBentfChgJ/exec';
+let syncEnabled = false;
+let syncStatus = 'local'; // 'local' | 'syncing' | 'synced' | 'error'
+
+async function sheetsGetAll(){
+  if(!SCRIPT_URL) return null;
+  try{
+    const r=await fetch(SCRIPT_URL+'?action=getAll');
+    const j=await r.json();
+    return j.success?j.data:null;
+  }catch(e){return null;}
+}
+
+async function sheetsSaveTable(table, data){
+  if(!SCRIPT_URL) return;
+  try{
+    const url=SCRIPT_URL+'?action=save&table='+table+'&data='+encodeURIComponent(JSON.stringify(data));
+    await fetch(url);
+  }catch(e){}
+}
+
+async function syncFromSheets(){
+  if(!SCRIPT_URL){setSyncStatus('local');return;}
+  setSyncStatus('syncing');
+  const remote=await sheetsGetAll();
+  if(!remote){setSyncStatus('error');return;}
+  const db=loadDB();
+  // Merge: remote wins (it's the shared source of truth)
+  if(remote.usuarios&&remote.usuarios.length) db.users=remote.usuarios;
+  if(remote.notifs) db.notifs=remote.notifs;
+  if(remote.contras) db.contras=remote.contras;
+  if(remote.emails) db.emails=remote.emails;
+  saveDB(db);
+  setSyncStatus('synced');
+  return db;
+}
+
+async function syncToSheets(db){
+  if(!SCRIPT_URL) return;
+  setSyncStatus('syncing');
+  await Promise.all([
+    sheetsSaveTable('usuarios', db.users),
+    sheetsSaveTable('notifs', db.notifs),
+    sheetsSaveTable('contras', db.contras),
+    sheetsSaveTable('emails', db.emails),
+  ]);
+  setSyncStatus('synced');
+}
+
+function setSyncStatus(s){
+  syncStatus=s;
+  const el=document.getElementById('syncIndicator');
+  if(!el)return;
+  const map={
+    local:{icon:'ti-database',color:'var(--text3)',label:'Local'},
+    syncing:{icon:'ti-refresh',color:'var(--warning)',label:'Sincronizando…'},
+    synced:{icon:'ti-cloud-check',color:'var(--success)',label:'Sincronizado'},
+    error:{icon:'ti-cloud-x',color:'var(--danger)',label:'Erro de sincronização'},
+  };
+  const m=map[s]||map.local;
+  el.innerHTML=`<i class="ti ${m.icon}" style="font-size:13px;color:${m.color}${s==='syncing'?';animation:spin .8s linear infinite':''}"></i><span style="font-size:11px;color:${m.color};font-family:var(--mono)">${m.label}</span>`;
+}
+
+// Override saveDB to also sync to Sheets
+const _origSaveDB = function(db){localStorage.setItem(DB_KEY,JSON.stringify(db));};
+function saveDB(db){
+  _origSaveDB(db);
+  if(SCRIPT_URL) syncToSheets(db);
+}
+
 let currentUser=null;
 let kanbanType='notif';
 let dragItem=null;
@@ -755,8 +832,24 @@ function startApp(){
   document.getElementById('topbarUser').textContent=currentUser.nome;
   if(currentUser.role==='admin')document.getElementById('nav-usuarios').style.display='flex';
   populateResponsaveis();populateMetricFilters();
-  showPage('painel');
-  setInterval(checkAlerts,60000);checkAlerts();
+  setSyncStatus(SCRIPT_URL?'syncing':'local');
+  if(SCRIPT_URL){
+    syncFromSheets().then(remoteDb=>{
+      if(remoteDb){populateResponsaveis();populateMetricFilters();}
+      showPage('painel');
+      checkAlerts();
+    });
+  } else {
+    showPage('painel');
+    checkAlerts();
+  }
+  setInterval(()=>{
+    checkAlerts();
+    if(SCRIPT_URL) syncFromSheets().then(()=>{
+      const p=document.querySelector('[id^="page-"]:not([style*="none"])');
+      if(p){const id=p.id.replace('page-','');if(id==='painel')renderPainel();if(id==='kanban')renderKanban();if(id==='notificacoes')renderNotif();if(id==='contra')renderContra();}
+    });
+  }, 60000);
 }
 window.addEventListener('DOMContentLoaded',()=>{const s=sessionStorage.getItem('dn_s');if(s){try{currentUser=JSON.parse(s);startApp();}catch(e){}}});
 
