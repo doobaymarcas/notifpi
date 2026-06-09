@@ -817,12 +817,41 @@ function getDB(){return loadDB();}
 // AUTH
 document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 document.getElementById('loginUser').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-function doLogin(){
+async function doLogin(){
   const user=document.getElementById('loginUser').value.trim();
   const pass=document.getElementById('loginPass').value;
   if(!user||!pass){showErr('Preencha usuário e senha.');return;}
+  document.querySelector('.btn-login').textContent='Verificando…';
+  document.querySelector('.btn-login').disabled=true;
+
+  // Always try to sync users from Sheets first
+  if(SCRIPT_URL){
+    try{
+      const url=SCRIPT_URL+'?action=getAll&_='+Date.now();
+      const r=await fetch(url,{redirect:'follow'});
+      const j=await r.json();
+      if(j.success&&j.data&&j.data.usuarios&&j.data.usuarios.length){
+        const db=loadDB();
+        db.users=j.data.usuarios;
+        // also sync all other data
+        if(j.data.notifs) db.notifs=j.data.notifs;
+        if(j.data.contras) db.contras=j.data.contras;
+        if(j.data.emails) db.emails=j.data.emails;
+        _origSaveDB(db);
+      }
+    }catch(e){console.warn('Sheets sync on login failed:',e);}
+  }
+
   const db=getDB();
-  const found=db.users.find(u=>u.user===user&&u.pass===pass);
+  const found=db.users.find(u=>{
+    const uMatch=(u.user||'').trim().toLowerCase()===user.toLowerCase();
+    const pMatch=(u.pass||'').toString().trim()===pass.trim();
+    return uMatch&&pMatch;
+  });
+
+  document.querySelector('.btn-login').textContent='Entrar';
+  document.querySelector('.btn-login').disabled=false;
+
   if(!found){showErr('Usuário ou senha incorretos.');return;}
   currentUser=found;sessionStorage.setItem('dn_s',JSON.stringify(found));startApp();
 }
