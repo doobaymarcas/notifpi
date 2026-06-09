@@ -827,7 +827,10 @@ const STATUS_LABELS={
 };
 
 function loadDB(){try{return JSON.parse(localStorage.getItem(DB_KEY))||initDB();}catch(e){return initDB();}}
-function initDB(){const db={users:[{id:'u1',nome:'Administrador',user:'admin',pass:'doonotifica2024',role:'admin',criado:new Date().toISOString()}],notifs:[],contras:[],emails:[]};saveDB(db);return db;}
+function initDB(){const db={users:[
+  {id:'u1',nome:'Administrador',user:'admin',pass:'admin2026',role:'admin',criado:new Date().toISOString()},
+  {id:'u2',nome:'Raica',user:'raica',pass:'raica2026',role:'user',criado:new Date().toISOString()}
+],notifs:[],contras:[],emails:[]};saveDB(db);return db;}
 function saveDB(db){localStorage.setItem(DB_KEY,JSON.stringify(db));}
 function getDB(){return loadDB();}
 
@@ -838,39 +841,47 @@ async function doLogin(){
   const user=document.getElementById('loginUser').value.trim();
   const pass=document.getElementById('loginPass').value;
   if(!user||!pass){showErr('Preencha usuário e senha.');return;}
-  document.querySelector('.btn-login').textContent='Verificando…';
-  document.querySelector('.btn-login').disabled=true;
 
-  // Always try to sync users from Sheets first
+  const btn=document.querySelector('.btn-login');
+  btn.textContent='Entrando…';btn.disabled=true;
+
+  // Try to sync from Sheets with 5s timeout — if it fails, use local data
   if(SCRIPT_URL){
     try{
-      const url=SCRIPT_URL+'?action=getAll&_='+Date.now();
-      const r=await fetch(url,{redirect:'follow'});
-      const j=await r.json();
-      if(j.success&&j.data&&j.data.usuarios&&j.data.usuarios.length){
+      const syncPromise=sheetsGetAll();
+      const timeoutPromise=new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),5000));
+      const remote=await Promise.race([syncPromise,timeoutPromise]);
+      if(remote&&remote.usuarios&&remote.usuarios.length){
         const db=loadDB();
-        db.users=j.data.usuarios;
-        // also sync all other data
-        if(j.data.notifs) db.notifs=j.data.notifs;
-        if(j.data.contras) db.contras=j.data.contras;
-        if(j.data.emails) db.emails=j.data.emails;
+        db.users=remote.usuarios;
+        if(remote.notifs) db.notifs=remote.notifs;
+        if(remote.contras) db.contras=remote.contras;
+        if(remote.emails) db.emails=remote.emails;
         _origSaveDB(db);
       }
-    }catch(e){console.warn('Sheets sync on login failed:',e);}
+    }catch(e){
+      console.warn('Sheets sync skipped:',e.message);
+      // Continue with local data — don't block login
+    }
   }
 
   const db=getDB();
-  const found=db.users.find(u=>{
-    const uMatch=(u.user||'').trim().toLowerCase()===user.toLowerCase();
-    const pMatch=(u.pass||'').toString().trim()===pass.trim();
-    return uMatch&&pMatch;
-  });
 
-  document.querySelector('.btn-login').textContent='Entrar';
-  document.querySelector('.btn-login').disabled=false;
+  // Try exact match first, then case-insensitive
+  let found=db.users.find(u=>u.user===user&&u.pass===pass);
+  if(!found) found=db.users.find(u=>(u.user||'').toLowerCase()===user.toLowerCase()&&(u.pass||'').toString()===pass);
 
-  if(!found){showErr('Usuário ou senha incorretos.');return;}
-  currentUser=found;sessionStorage.setItem('dn_s',JSON.stringify(found));startApp();
+  btn.textContent='Entrar';btn.disabled=false;
+
+  if(!found){
+    // Show what users exist locally for debug (only in console)
+    console.log('Local users:',db.users.map(u=>u.user));
+    showErr('Usuário ou senha incorretos.');
+    return;
+  }
+  currentUser=found;
+  sessionStorage.setItem('dn_s',JSON.stringify(found));
+  startApp();
 }
 function showErr(m){const e=document.getElementById('loginErr');e.textContent=m;e.classList.add('show');}
 function doLogout(){currentUser=null;sessionStorage.clear();document.getElementById('app').style.display='none';document.getElementById('loginScreen').style.display='flex';document.getElementById('loginPass').value='';}
