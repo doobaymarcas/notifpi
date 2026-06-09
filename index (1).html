@@ -706,18 +706,24 @@ let syncStatus = 'local'; // 'local' | 'syncing' | 'synced' | 'error'
 async function sheetsGetAll(){
   if(!SCRIPT_URL) return null;
   try{
-    const r=await fetch(SCRIPT_URL+'?action=getAll');
+    const url=SCRIPT_URL+'?action=getAll&_='+Date.now();
+    const r=await fetch(url, {redirect:'follow'});
     const j=await r.json();
     return j.success?j.data:null;
-  }catch(e){return null;}
+  }catch(e){
+    console.error('sheetsGetAll error:',e);
+    return null;
+  }
 }
 
 async function sheetsSaveTable(table, data){
   if(!SCRIPT_URL) return;
   try{
-    const url=SCRIPT_URL+'?action=save&table='+table+'&data='+encodeURIComponent(JSON.stringify(data));
-    await fetch(url);
-  }catch(e){}
+    const url=SCRIPT_URL+'?action=save&table='+encodeURIComponent(table)+'&data='+encodeURIComponent(JSON.stringify(data))+'&_='+Date.now();
+    await fetch(url, {redirect:'follow'});
+  }catch(e){
+    console.error('sheetsSaveTable error:',e);
+  }
 }
 
 async function syncFromSheets(){
