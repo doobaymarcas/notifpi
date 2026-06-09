@@ -241,8 +241,13 @@ td.pc{color:var(--text);font-weight:500}
 .col-cadastrada .kanban-col-title{color:#94a3b8}
 .col-enviada .kanban-col-head{background:rgba(79,110,247,.08)}
 .col-enviada .kanban-col-title{color:#818cf8}
-.col-aguardando .kanban-col-head{background:rgba(245,166,35,.08)}
-.col-aguardando .kanban-col-title{color:#fbbf24}
+.col-providencia .kanban-col-head{background:rgba(240,82,82,.12)}
+.col-providencia .kanban-col-title{color:#f87171;display:flex;align-items:center;gap:6px}
+.col-providencia .kanban-col-body{border-color:rgba(240,82,82,.25)}
+.col-providencia.has-cards .kanban-col-body{border-color:rgba(240,82,82,.5);box-shadow:0 0 0 1px rgba(240,82,82,.2) inset}
+.providencia-pulse{width:8px;height:8px;border-radius:50%;background:var(--danger);animation:pulse-red 1.5s ease-in-out infinite;flex-shrink:0}
+@keyframes pulse-red{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+@keyframes spin{to{transform:rotate(360deg)}}
 .col-respondida .kanban-col-head{background:rgba(45,212,160,.08)}
 .col-respondida .kanban-col-title{color:#34d399}
 .col-resolvida .kanban-col-head{background:rgba(45,212,160,.06)}
@@ -284,6 +289,10 @@ td.pc{color:var(--text);font-weight:500}
   <div class="topbar" style="left:220px">
     <span class="topbar-title" id="topbarTitle">Painel</span>
     <div class="topbar-right">
+      <div id="syncIndicator" style="display:flex;align-items:center;gap:5px;padding:4px 10px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--r)">
+        <i class="ti ti-database" style="font-size:13px;color:var(--text3)"></i>
+        <span style="font-size:11px;color:var(--text3);font-family:var(--mono)">Local</span>
+      </div>
       <div class="bell-wrap">
         <div class="bell-btn" onclick="toggleBell()" id="bellBtn">
           <i class="ti ti-bell"></i>
@@ -381,7 +390,7 @@ td.pc{color:var(--text);font-weight:500}
               <option value="">Todos</option>
               <option value="cadastrada">Cadastrada</option>
               <option value="enviada">Enviada</option>
-              <option value="aguardando">Aguardando</option>
+              <option value="providencia">Tomar Providência</option>
               <option value="respondida">Respondida</option>
               <option value="resolvida">Resolvida</option>
               <option value="standby">Stand-by</option>
@@ -409,7 +418,7 @@ td.pc{color:var(--text);font-weight:500}
               <option value="">Todos</option>
               <option value="cadastrada">Cadastrada</option>
               <option value="enviada">Enviada</option>
-              <option value="aguardando">Aguardando</option>
+              <option value="providencia">Tomar Providência</option>
               <option value="respondida">Respondida</option>
               <option value="resolvida">Resolvida</option>
               <option value="standby">Stand-by</option>
@@ -597,6 +606,81 @@ td.pc{color:var(--text);font-weight:500}
 </div>
 </div>
 
+
+<!-- MODAL EDITAR NOTIFICAÇÃO -->
+<div class="modal-bg" id="modal-edit-notif">
+<div class="modal wide">
+  <h2><i class="ti ti-pencil"></i>Editar notificação</h2>
+  <div class="sec-div">Identificação</div>
+  <div class="form-grid">
+    <div class="form-row"><label>Cliente (titular)</label><input type="text" id="en-cliente"></div>
+    <div class="form-row"><label>Notificado</label><input type="text" id="en-notificado"></div>
+  </div>
+  <div class="form-grid">
+    <div class="form-row"><label>Marca envolvida</label><input type="text" id="en-marca"></div>
+    <div class="form-row"><label>Responsável</label><select id="en-resp"></select></div>
+  </div>
+  <div class="sec-div">Envio</div>
+  <div class="form-grid">
+    <div class="form-row"><label>Data de envio</label><input type="date" id="en-envio"></div>
+    <div class="form-row"><label>Prazo dado (dias)</label><input type="number" id="en-prazo" min="1"></div>
+  </div>
+  <div class="form-row"><label>Canais</label>
+    <div class="channels-grid">
+      <label class="ch-check" id="ench-email" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-mail"></i>E-mail</label>
+      <label class="ch-check" id="ench-whats" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-brand-whatsapp"></i>WhatsApp</label>
+      <label class="ch-check" id="ench-correio" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-mail-forward"></i>Correios AR</label>
+      <label class="ch-check" id="ench-cartorio" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-building"></i>Cartório</label>
+      <label class="ch-check" id="ench-presencial" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-user-check"></i>Presencial</label>
+    </div>
+  </div>
+  <div class="form-row"><label>Observações</label><textarea id="en-obs"></textarea></div>
+  <div class="modal-footer">
+    <button class="btn" onclick="closeModal('edit-notif')">Cancelar</button>
+    <button class="btn primary" onclick="saveEditNotif()"><i class="ti ti-check"></i>Salvar alterações</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL EDITAR CONTRA-NOTIFICAÇÃO -->
+<div class="modal-bg" id="modal-edit-contra">
+<div class="modal wide">
+  <h2><i class="ti ti-pencil"></i>Editar contra-notificação</h2>
+  <div class="sec-div">Identificação</div>
+  <div class="form-grid">
+    <div class="form-row"><label>Nosso cliente</label><input type="text" id="ec-cliente"></div>
+    <div class="form-row"><label>Empresa notificante</label><input type="text" id="ec-notificante"></div>
+  </div>
+  <div class="form-grid">
+    <div class="form-row"><label>Marca contestada</label><input type="text" id="ec-marca"></div>
+    <div class="form-row"><label>Responsável</label><select id="ec-resp"></select></div>
+  </div>
+  <div class="sec-div">Notificação recebida</div>
+  <div class="form-grid">
+    <div class="form-row"><label>Recebida em</label><input type="date" id="ec-recebida"></div>
+    <div class="form-row"><label>Prazo p/ defesa (dias)</label><input type="number" id="ec-prazo-rec" min="1"></div>
+  </div>
+  <div class="sec-div">Nossa resposta</div>
+  <div class="form-grid">
+    <div class="form-row"><label>Contra-notif. enviada em</label><input type="date" id="ec-enviada"></div>
+    <div class="form-row"><label>Aguardar retorno por (dias)</label><input type="number" id="ec-alerta" min="1"></div>
+  </div>
+  <div class="form-row"><label>Canais</label>
+    <div class="channels-grid">
+      <label class="ch-check" id="ecch-email" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-mail"></i>E-mail</label>
+      <label class="ch-check" id="ecch-whats" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-brand-whatsapp"></i>WhatsApp</label>
+      <label class="ch-check" id="ecch-correio" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-mail-forward"></i>Correios AR</label>
+      <label class="ch-check" id="ecch-cartorio" onclick="toggleCh(this)"><input type="checkbox"><i class="ti ti-building"></i>Cartório</label>
+    </div>
+  </div>
+  <div class="form-row"><label>Observações</label><textarea id="ec-obs"></textarea></div>
+  <div class="modal-footer">
+    <button class="btn" onclick="closeModal('edit-contra')">Cancelar</button>
+    <button class="btn primary" onclick="saveEditContra()"><i class="ti ti-check"></i>Salvar alterações</button>
+  </div>
+</div>
+</div>
+
 <!-- MODAL DETALHE -->
 <div class="modal-bg" id="modal-detail">
 <div class="modal wide" id="detailContent"></div>
@@ -613,6 +697,78 @@ td.pc{color:var(--text);font-weight:500}
 
 <script>
 const DB_KEY='doobay_v3';
+// ---- GOOGLE SHEETS SYNC ----
+// Paste your Apps Script URL below after deploying
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4eUFnOQP-1Qll9YQltBLaHBQ2iCy8LZjQfqjcZlQWE0tiA4S9YdeHctnBentfChgJ/exec';
+let syncEnabled = false;
+let syncStatus = 'local'; // 'local' | 'syncing' | 'synced' | 'error'
+
+async function sheetsGetAll(){
+  if(!SCRIPT_URL) return null;
+  try{
+    const r=await fetch(SCRIPT_URL+'?action=getAll');
+    const j=await r.json();
+    return j.success?j.data:null;
+  }catch(e){return null;}
+}
+
+async function sheetsSaveTable(table, data){
+  if(!SCRIPT_URL) return;
+  try{
+    const url=SCRIPT_URL+'?action=save&table='+table+'&data='+encodeURIComponent(JSON.stringify(data));
+    await fetch(url);
+  }catch(e){}
+}
+
+async function syncFromSheets(){
+  if(!SCRIPT_URL){setSyncStatus('local');return;}
+  setSyncStatus('syncing');
+  const remote=await sheetsGetAll();
+  if(!remote){setSyncStatus('error');return;}
+  const db=loadDB();
+  // Merge: remote wins (it's the shared source of truth)
+  if(remote.usuarios&&remote.usuarios.length) db.users=remote.usuarios;
+  if(remote.notifs) db.notifs=remote.notifs;
+  if(remote.contras) db.contras=remote.contras;
+  if(remote.emails) db.emails=remote.emails;
+  saveDB(db);
+  setSyncStatus('synced');
+  return db;
+}
+
+async function syncToSheets(db){
+  if(!SCRIPT_URL) return;
+  setSyncStatus('syncing');
+  await Promise.all([
+    sheetsSaveTable('usuarios', db.users),
+    sheetsSaveTable('notifs', db.notifs),
+    sheetsSaveTable('contras', db.contras),
+    sheetsSaveTable('emails', db.emails),
+  ]);
+  setSyncStatus('synced');
+}
+
+function setSyncStatus(s){
+  syncStatus=s;
+  const el=document.getElementById('syncIndicator');
+  if(!el)return;
+  const map={
+    local:{icon:'ti-database',color:'var(--text3)',label:'Local'},
+    syncing:{icon:'ti-refresh',color:'var(--warning)',label:'Sincronizando…'},
+    synced:{icon:'ti-cloud-check',color:'var(--success)',label:'Sincronizado'},
+    error:{icon:'ti-cloud-x',color:'var(--danger)',label:'Erro de sincronização'},
+  };
+  const m=map[s]||map.local;
+  el.innerHTML=`<i class="ti ${m.icon}" style="font-size:13px;color:${m.color}${s==='syncing'?';animation:spin .8s linear infinite':''}"></i><span style="font-size:11px;color:${m.color};font-family:var(--mono)">${m.label}</span>`;
+}
+
+// Override saveDB to also sync to Sheets
+const _origSaveDB = function(db){localStorage.setItem(DB_KEY,JSON.stringify(db));};
+function saveDB(db){
+  _origSaveDB(db);
+  if(SCRIPT_URL) syncToSheets(db);
+}
+
 let currentUser=null;
 let kanbanType='notif';
 let dragItem=null;
@@ -625,7 +781,7 @@ const MONTHS_SHORT=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out',
 const KANBAN_COLS=[
   {id:'cadastrada',label:'Cadastrada',cls:'col-cadastrada'},
   {id:'enviada',label:'Enviada',cls:'col-enviada'},
-  {id:'aguardando',label:'Aguardando Resposta',cls:'col-aguardando'},
+  {id:'providencia',label:'Tomar Providência',cls:'col-providencia'},
   {id:'respondida',label:'Respondida',cls:'col-respondida'},
 ];
 const RESPONDIDA_SUB=[
@@ -638,6 +794,7 @@ const RESPONDIDA_SUB=[
   {id:'arquivada',label:'Arquivada'},
 ];
 const STATUS_RESPONDIDA=['resolvida','standby','ag-cliente','judicial','arquivada','respondida'];
+const ETAPAS_ATIVAS=['cadastrada','enviada','providencia'];
 let respondidaFilter='todos';
 
 const STATUS_LABELS={
@@ -675,8 +832,24 @@ function startApp(){
   document.getElementById('topbarUser').textContent=currentUser.nome;
   if(currentUser.role==='admin')document.getElementById('nav-usuarios').style.display='flex';
   populateResponsaveis();populateMetricFilters();
-  showPage('painel');
-  setInterval(checkAlerts,60000);checkAlerts();
+  setSyncStatus(SCRIPT_URL?'syncing':'local');
+  if(SCRIPT_URL){
+    syncFromSheets().then(remoteDb=>{
+      if(remoteDb){populateResponsaveis();populateMetricFilters();}
+      showPage('painel');
+      checkAlerts();
+    });
+  } else {
+    showPage('painel');
+    checkAlerts();
+  }
+  setInterval(()=>{
+    checkAlerts();
+    if(SCRIPT_URL) syncFromSheets().then(()=>{
+      const p=document.querySelector('[id^="page-"]:not([style*="none"])');
+      if(p){const id=p.id.replace('page-','');if(id==='painel')renderPainel();if(id==='kanban')renderKanban();if(id==='notificacoes')renderNotif();if(id==='contra')renderContra();}
+    });
+  }, 60000);
 }
 window.addEventListener('DOMContentLoaded',()=>{const s=sessionStorage.getItem('dn_s');if(s){try{currentUser=JSON.parse(s);startApp();}catch(e){}}});
 
@@ -729,40 +902,94 @@ function populateMetricFilters(){
   mm.innerHTML='<option value="">Todos os meses</option>'+MONTHS_PT.map((m,i)=>`<option value="${i}">${m}</option>`).join('');
 }
 
-// ALERTS
+// ALERTS + AUTO-MOVE
 function checkAlerts(){
-  const db=getDB();const alerts=[];
+  const db=getDB();
+  let moved=false;
+  const alerts=[];
+
+  // AUTO-MOVE: notifs with expired prazo → providencia
   db.notifs.forEach(n=>{
-    if(['resolvida','arquivada','judicial'].includes(n.status))return;
     if(!n.envio||!n.prazo)return;
+    if(STATUS_RESPONDIDA.includes(n.status)||n.status==='providencia')return;
     const d=diasR(n.envio,n.prazo);
-    if(d<0)alerts.push({tipo:'Notificação',label:n.cliente+' × '+n.notificado,msg:'Prazo vencido há '+Math.abs(d)+'d. Defina um status ou crie 2ª notificação.',color:'var(--danger)',id:n.id});
-    else if(d<=3)alerts.push({tipo:'Notificação',label:n.cliente+' × '+n.notificado,msg:'Prazo vence em '+d+'d.',color:'var(--warning)',id:n.id});
-  });
-  db.contras.forEach(c=>{
-    if(['resolvida','arquivada'].includes(c.status))return;
-    if(c.enviada&&c.alerta){
-      const d=diasR(c.enviada,c.alerta);
-      if(d<0)alerts.push({tipo:'Contra-notif.',label:c.cliente+' vs '+c.notificante,msg:'Sem retorno há '+Math.abs(d)+'d. Verifique o andamento.',color:'var(--danger)',id:c.id});
-      else if(d<=3)alerts.push({tipo:'Contra-notif.',label:c.cliente+' vs '+c.notificante,msg:'Alerta de retorno em '+d+'d.',color:'var(--warning)',id:c.id});
+    if(d<0){
+      n.status='providencia';
+      n.statusPor='Sistema';
+      n.statusData=today();
+      moved=true;
     }
   });
+
+  // AUTO-MOVE: contras with expired alerta → providencia
+  db.contras.forEach(c=>{
+    if(!c.enviada||!c.alerta)return;
+    if(STATUS_RESPONDIDA.includes(c.status)||c.status==='providencia')return;
+    const d=diasR(c.enviada,c.alerta);
+    if(d<0){
+      c.status='providencia';
+      c.statusPor='Sistema';
+      c.statusData=today();
+      moved=true;
+    }
+  });
+
+  if(moved){saveDB(db);}
+
+  // BUILD ALERTS
+  // Providencia items
+  db.notifs.filter(n=>n.status==='providencia').forEach(n=>{
+    alerts.push({tipo:'Notificação',label:n.cliente+' × '+n.notificado,msg:'Prazo vencido — tomar providência. Crie 2ª notificação ou defina novo status.',color:'var(--danger)',urgente:true});
+  });
+  db.contras.filter(c=>c.status==='providencia').forEach(c=>{
+    alerts.push({tipo:'Contra-notif.',label:c.cliente+' vs '+c.notificante,msg:'Prazo de retorno vencido — tomar providência. Verifique com o notificante.',color:'var(--danger)',urgente:true});
+  });
+
+  // Upcoming (3 days)
+  db.notifs.forEach(n=>{
+    if(!n.envio||!n.prazo||n.status==='providencia'||STATUS_RESPONDIDA.includes(n.status))return;
+    const d=diasR(n.envio,n.prazo);
+    if(d>=0&&d<=3)alerts.push({tipo:'Notificação',label:n.cliente+' × '+n.notificado,msg:'Prazo vence em '+d+'d. Fique atento.',color:'var(--warning)',urgente:false});
+  });
+  db.contras.forEach(c=>{
+    if(!c.enviada||!c.alerta||c.status==='providencia'||STATUS_RESPONDIDA.includes(c.status))return;
+    const d=diasR(c.enviada,c.alerta);
+    if(d>=0&&d<=3)alerts.push({tipo:'Contra-notif.',label:c.cliente+' vs '+c.notificante,msg:'Alerta de retorno em '+d+'d.',color:'var(--warning)',urgente:false});
+  });
+
   const badge=document.getElementById('bellBadge');
-  if(alerts.length>0){badge.textContent=alerts.length;badge.classList.remove('hidden');}
-  else badge.classList.add('hidden');
+  const urgCount=alerts.filter(a=>a.urgente).length;
+  if(alerts.length>0){
+    badge.textContent=alerts.length;
+    badge.classList.remove('hidden');
+    badge.style.background=urgCount>0?'var(--danger)':'var(--warning)';
+  } else {
+    badge.classList.add('hidden');
+  }
+
   const list=document.getElementById('notifList');
-  if(alerts.length===0){list.innerHTML='<div class="no-notifs"><i class="ti ti-check" style="font-size:22px;display:block;margin-bottom:6px;opacity:.4"></i>Nenhum alerta pendente</div>';return;}
-  list.innerHTML=alerts.map(a=>`
+  if(alerts.length===0){
+    list.innerHTML='<div class="no-notifs"><i class="ti ti-check" style="font-size:22px;display:block;margin-bottom:6px;opacity:.4"></i>Nenhum alerta pendente</div>';
+    return;
+  }
+
+  // Urgent first
+  const sorted=[...alerts.filter(a=>a.urgente),...alerts.filter(a=>!a.urgente)];
+  list.innerHTML=sorted.map(a=>`
     <div class="notif-item">
       <div class="notif-item-head">
         <div class="notif-dot" style="background:${a.color}"></div>
-        <div>
-          <div class="notif-item-title">${a.tipo} — ${a.label}</div>
+        <div style="flex:1">
+          <div class="notif-item-title">${a.urgente?'🔴 ':''}<strong>${a.tipo}</strong> — ${a.label}</div>
           <div class="notif-item-sub">${a.msg}</div>
-          <div class="notif-item-action">→ Atualizar status</div>
+          ${a.urgente?`<div class="notif-item-action">→ Ir para Kanban · Tomar Providência</div>`:''}
         </div>
       </div>
     </div>`).join('');
+
+  // If kanban is visible, re-render it to reflect auto-moves
+  if(document.getElementById('page-kanban').style.display!=='none'){renderKanban();}
+  if(document.getElementById('page-painel').style.display!=='none'){renderPainel();}
 }
 
 function toggleBell(){
@@ -788,9 +1015,9 @@ function getFilteredItems(){
 
 function renderPainel(){
   const {notifs,contras}=getFilteredItems();
-  const active=notifs.filter(n=>!['resolvida','arquivada'].includes(n.status));
-  const vencidos=active.filter(n=>n.envio&&n.prazo&&diasR(n.envio,n.prazo)<0).length;
-  const urgentes=active.filter(n=>{if(!n.envio||!n.prazo)return false;const d=diasR(n.envio,n.prazo);return d>=0&&d<=3;}).length;
+  const active=notifs.filter(n=>!['resolvida','arquivada','respondida'].includes(n.status));
+  const vencidos=notifs.filter(n=>n.status==='providencia').length;
+  const urgentes=active.filter(n=>{if(n.status==='providencia')return false;if(!n.envio||!n.prazo)return false;const d=diasR(n.envio,n.prazo);return d>=0&&d<=3;}).length;
   const semRet=contras.filter(c=>!['resolvida','arquivada'].includes(c.status)&&c.enviada&&c.alerta&&diasR(c.enviada,c.alerta)<0).length;
 
   document.getElementById('metricsGrid').innerHTML=`
@@ -805,9 +1032,9 @@ function renderPainel(){
       <div class="metric-sub">Clique para ver casos</div>
     </div>
     <div class="metric-card" onclick="openMetric('vencidos')">
-      <div class="metric-label">Prazos vencidos</div>
+      <div class="metric-label">Tomar Providência ⚡</div>
       <div class="metric-val ${vencidos>0?'danger':'success'}">${vencidos}</div>
-      <div class="metric-sub">Requerem ação imediata</div>
+      <div class="metric-sub">Cards movidos automaticamente</div>
     </div>
     <div class="metric-card" onclick="openMetric('urgentes')">
       <div class="metric-label">Urgentes (≤3d)</div>
@@ -822,16 +1049,16 @@ function renderPainel(){
 
   const db=getDB();
   const crit=[
-    ...db.notifs.filter(n=>!['resolvida','arquivada','standby'].includes(n.status)&&n.envio&&n.prazo&&diasR(n.envio,n.prazo)<=7).map(n=>({tipo:'Notificação',label:n.cliente+' × '+n.notificado,marca:n.marca,d:diasR(n.envio,n.prazo),resp:n.resp})),
-    ...db.contras.filter(c=>!['resolvida','arquivada','standby'].includes(c.status)&&c.enviada&&c.alerta&&diasR(c.enviada,c.alerta)<=7).map(c=>({tipo:'Contra-notif.',label:c.cliente+' vs '+c.notificante,marca:c.marca,d:diasR(c.enviada,c.alerta),resp:c.resp}))
+    ...db.notifs.filter(n=>!['resolvida','arquivada','standby','respondida'].includes(n.status)&&n.envio&&n.prazo&&diasR(n.envio,n.prazo)<=7).map(n=>({tipo:'Notificação',label:n.cliente+' × '+n.notificado,marca:n.marca,d:diasR(n.envio,n.prazo),resp:n.resp,prov:n.status==='providencia'})),
+    ...db.contras.filter(c=>!['resolvida','arquivada','standby','respondida'].includes(c.status)&&c.enviada&&c.alerta&&diasR(c.enviada,c.alerta)<=7).map(c=>({tipo:'Contra-notif.',label:c.cliente+' vs '+c.notificante,marca:c.marca,d:diasR(c.enviada,c.alerta),resp:c.resp,prov:c.status==='providencia'}))
   ].sort((a,b)=>a.d-b.d);
 
   const cl=document.getElementById('criticalList');
   if(!crit.length){cl.innerHTML='<div class="empty-state"><i class="ti ti-circle-check"></i>Nenhum prazo crítico nos próximos 7 dias</div>';return;}
   cl.innerHTML=crit.map(c=>{
-    const cls=c.d<0?'vencido':c.d<=3?'urgente':'ok';
-    const lbl=c.d<0?'Venceu há '+Math.abs(c.d)+'d':c.d===0?'Vence hoje':'Vence em '+c.d+'d';
-    const dot=c.d<0?'red':c.d<=3?'amber':'green';
+    const cls=c.prov?'vencido':c.d<0?'vencido':c.d<=3?'urgente':'ok';
+    const lbl=c.prov?'⚡ Tomar Providência':c.d<0?'Venceu há '+Math.abs(c.d)+'d':c.d===0?'Vence hoje':'Vence em '+c.d+'d';
+    const dot=c.prov||c.d<0?'red':c.d<=3?'amber':'green';
     return`<div class="tl-item"><div class="tl-dot ${dot}"></div><div class="tl-info"><div class="tl-title">${c.tipo} — ${c.label} <span class="badge ${cls}" style="margin-left:6px">${lbl}</span></div><div class="tl-sub">Marca: ${c.marca||'—'} · Resp: ${c.resp}</div></div></div>`;
   }).join('');
 }
@@ -868,10 +1095,12 @@ function renderKanban(){
   // First 3 cols: cadastrada, enviada, aguardando
   let html=KANBAN_COLS.slice(0,3).map(col=>{
     const colItems=items.filter(i=>i.status===col.id);
-    return`<div class="kanban-col ${col.cls}">
+    const isProvid=col.id==='providencia';
+    const hasCards=colItems.length>0;
+    return`<div class="kanban-col ${col.cls}${isProvid&&hasCards?' has-cards':''}">
       <div class="kanban-col-head">
-        <span class="kanban-col-title">${col.label}</span>
-        <span class="kanban-col-count">${colItems.length}</span>
+        <span class="kanban-col-title">${col.label}${isProvid&&hasCards?'<span class="providencia-pulse"></span>':''}</span>
+        <span class="kanban-col-count" style="${isProvid&&hasCards?'background:rgba(240,82,82,.3);color:#f87171':''}">${colItems.length}</span>
       </div>
       <div class="kanban-col-body" data-col="${col.id}"
         ondragover="e=>{e.preventDefault();this.classList.add('drag-over')}"
@@ -927,11 +1156,12 @@ function renderKCard(item,idx){
     </div>
     <div class="kcard-actions">
       <button class="btn sm icon-only" onclick="kanbanType==='notif'?detailNotif(${idx}):detailContra(${idx})" title="Detalhes"><i class="ti ti-eye"></i></button>
+      <button class="btn sm icon-only" onclick="kanbanType==='notif'?openEditNotif(${idx}):openEditContra(${idx})" title="Editar" style="color:var(--accent)"><i class="ti ti-pencil"></i></button>
       <select class="filter-select" style="height:24px;font-size:11px;padding:2px 6px;flex:1" onchange="moveCard(${idx},this.value)">
         <optgroup label="Etapas">
           <option value="cadastrada"${item.status==='cadastrada'?' selected':''}>Cadastrada</option>
           <option value="enviada"${item.status==='enviada'?' selected':''}>Enviada</option>
-          <option value="aguardando"${item.status==='aguardando'?' selected':''}>Aguardando</option>
+          <option value="providencia"${item.status==='providencia'?' selected':''}>Tomar Providência</option>
         </optgroup>
         <optgroup label="Respondida / Encerrada">
           <option value="respondida"${item.status==='respondida'?' selected':''}>Respondida</option>
@@ -999,6 +1229,7 @@ function renderNotif(){
       <td style="font-size:11px;color:var(--text3)">${n.criadoPor||'—'}</td>
       <td><div style="display:flex;gap:3px">
         <button class="btn sm icon-only" onclick="detailNotif(${idx})" title="Detalhes"><i class="ti ti-eye"></i></button>
+        <button class="btn sm icon-only" onclick="openEditNotif(${idx})" title="Editar" style="color:var(--accent)"><i class="ti ti-pencil"></i></button>
         <button class="btn sm icon-only" onclick="gerarPDFNotif(${idx})" title="Gerar PDF" style="color:var(--danger)"><i class="ti ti-file-type-pdf"></i></button>
         ${currentUser.role==='admin'?`<button class="btn sm icon-only" onclick="deleteItem('notif',${idx})" style="color:var(--danger)"><i class="ti ti-trash"></i></button>`:''}
       </div></td></tr>`;
@@ -1029,6 +1260,7 @@ function renderContra(){
       <td><span class="badge ${c.status}">${getStatusLabel(c.status)}</span></td>
       <td><div style="display:flex;gap:3px">
         <button class="btn sm icon-only" onclick="detailContra(${idx})"><i class="ti ti-eye"></i></button>
+        <button class="btn sm icon-only" onclick="openEditContra(${idx})" title="Editar" style="color:var(--accent)"><i class="ti ti-pencil"></i></button>
         <button class="btn sm icon-only" onclick="gerarPDFContra(${idx})" title="Gerar PDF" style="color:var(--danger)"><i class="ti ti-file-type-pdf"></i></button>
         ${currentUser.role==='admin'?`<button class="btn sm icon-only" onclick="deleteItem('contra',${idx})" style="color:var(--danger)"><i class="ti ti-trash"></i></button>`:''}
       </div></td></tr>`;
@@ -1219,7 +1451,7 @@ function detailNotif(idx){
         <select id="quickStatus" style="height:32px;font-size:12px">
           <option value="cadastrada">Cadastrada</option>
           <option value="enviada">Enviada</option>
-          <option value="aguardando">Aguardando</option>
+          <option value="providencia">Tomar Providência</option>
           <option value="respondida">Respondida</option>
           <option value="resolvida">Resolvida ✓</option>
           <option value="standby">Stand-by</option>
@@ -1229,6 +1461,7 @@ function detailNotif(idx){
         </select>
       </div>
       <button class="btn primary" onclick="const db=getDB();db.notifs[${idx}].status=document.getElementById('quickStatus').value;db.notifs[${idx}].statusPor=currentUser.nome;saveDB(db);closeModal('detail');renderNotif();renderKanban();renderPainel();checkAlerts()"><i class="ti ti-check"></i>Atualizar status</button>
+      <button class="btn" onclick="openEditNotif(${idx})" style="color:var(--accent);border-color:var(--accent)"><i class="ti ti-pencil"></i>Editar</button>
       <button class="btn" onclick="gerarPDFNotif(${idx})" style="color:var(--danger);border-color:var(--danger)"><i class="ti ti-file-type-pdf"></i>Gerar PDF</button>
       <button class="btn" onclick="closeModal('detail')">Fechar</button>
     </div>`;
@@ -1236,199 +1469,273 @@ function detailNotif(idx){
 }
 
 // PDF GENERATION
+function pdfHeader(doc, W, margin, tipo, accentR, accentG, accentB){
+  // Dark top bar
+  doc.setFillColor(22,22,28);doc.rect(0,0,W,32,'F');
+  // Accent left stripe
+  doc.setFillColor(accentR,accentG,accentB);doc.rect(0,0,4,32,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(18);doc.setFont('helvetica','bold');
+  doc.text('DooNotifica',margin,14);
+  doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.setTextColor(160,160,190);
+  doc.text('PROPRIEDADE INTELECTUAL — RELATÓRIO DE MOVIMENTAÇÃO',margin,21);
+  doc.setTextColor(accentR,accentG,accentB);doc.setFontSize(9);doc.setFont('helvetica','bold');
+  doc.text(tipo,margin,28);
+  doc.setTextColor(110,110,140);doc.setFontSize(7);doc.setFont('helvetica','normal');
+  doc.text('Gerado em '+new Date().toLocaleDateString('pt-BR')+' às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),W-margin,28,{align:'right'});
+}
+
+function pdfFooter(doc, W, margin, resp, criadoPor){
+  const pH=297;
+  doc.setFillColor(22,22,28);doc.rect(0,pH-12,W,12,'F');
+  doc.setTextColor(100,100,130);doc.setFontSize(6.5);doc.setFont('helvetica','normal');
+  doc.text('DooNotifica — Controle de Notificações Extrajudiciais | Propriedade Intelectual',margin,pH-5);
+  doc.text('Resp: '+resp+' | Por: '+criadoPor,W-margin,pH-5,{align:'right'});
+}
+
+function pdfInfoBlock(doc, margin, W, y, fields){
+  const colW=W-margin*2;
+  const fh=7;
+  fields.forEach((f,i)=>{
+    const bg=i%2===0?[248,248,252]:[255,255,255];
+    doc.setFillColor(...bg);doc.rect(margin,y,colW,fh,'F');
+    doc.setDrawColor(225,225,235);doc.rect(margin,y,colW,fh,'S');
+    doc.setTextColor(110,110,145);doc.setFontSize(7.5);doc.setFont('helvetica','bold');
+    doc.text(f[0],margin+3,y+4.9);
+    doc.setTextColor(25,25,45);doc.setFont('helvetica','normal');doc.setFontSize(8);
+    const val=doc.splitTextToSize(f[1]||'—',colW-58);
+    doc.text(val,margin+56,y+4.9);
+    y+=fh;
+  });
+  return y;
+}
+
+function pdfSectionTitle(doc, margin, y, num, title, r, g, b){
+  doc.setFillColor(r||79,g||110,b||247);
+  doc.rect(margin,y,3,6,'F');
+  doc.setTextColor(r||79,g||110,b||247);
+  doc.setFontSize(9);doc.setFont('helvetica','bold');
+  doc.text((num?num+'. ':'')+title,margin+6,y+4.5);
+  return y+10;
+}
+
+function pdfTimeline(doc, margin, W, y, events){
+  const lineX=margin+6;
+  const colW=W-margin*2;
+  doc.setDrawColor(200,200,220);
+  doc.setLineWidth(0.4);
+
+  events.forEach((ev,i)=>{
+    const isLast=i===events.length-1;
+    const dotY=y+5;
+    // vertical line connecting dots
+    if(!isLast) doc.line(lineX,dotY+3,lineX,dotY+ev.h-2);
+    // dot
+    doc.setFillColor(...(ev.color||[79,110,247]));
+    doc.circle(lineX,dotY,2.5,'F');
+    // date chip
+    doc.setFillColor(240,240,248);doc.rect(margin+13,y+1,28,7,'F');
+    doc.setDrawColor(210,210,230);doc.rect(margin+13,y+1,28,7,'S');
+    doc.setTextColor(90,90,130);doc.setFontSize(7);doc.setFont('helvetica','bold');
+    doc.text(ev.date||'—',margin+14,y+5.8);
+    // title
+    doc.setTextColor(20,20,40);doc.setFontSize(8.5);doc.setFont('helvetica','bold');
+    doc.text(ev.title,margin+44,y+5.8);
+    // description lines
+    if(ev.desc){
+      doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(90,90,110);
+      const lines=doc.splitTextToSize(ev.desc,colW-36);
+      doc.text(lines,margin+44,y+11);
+    }
+    // status chip if present
+    if(ev.chip){
+      doc.setFillColor(...(ev.chipBg||[79,110,247,0.1]));
+      const chipW=doc.getTextWidth(ev.chip)+6;
+      doc.setFillColor(...(ev.chipFill||[230,234,255]));
+      doc.rect(margin+44,y+(ev.desc?11+7*Math.min(2,Math.ceil(ev.desc.length/60)):4),chipW,5,'F');
+      doc.setTextColor(...(ev.chipColor||[60,80,200]));
+      doc.setFontSize(6.5);doc.setFont('helvetica','bold');
+      doc.text(ev.chip,margin+47,y+(ev.desc?11+7*Math.min(2,Math.ceil(ev.desc.length/60))+3.5:7));
+    }
+    y+=ev.h;
+  });
+  return y;
+}
+
+function pdfNota(doc, margin, W, y){
+  const colW=W-margin*2;
+  doc.setFillColor(245,245,255);doc.rect(margin,y,colW,32,'F');
+  doc.setDrawColor(200,205,240);doc.rect(margin,y,colW,32,'S');
+  doc.setFillColor(79,110,247);doc.rect(margin,y,3,32,'F');
+  doc.setTextColor(70,70,130);doc.setFontSize(7.5);doc.setFont('helvetica','bolditalic');
+  doc.text('Nota ao cliente:',margin+7,y+7);
+  doc.setFont('helvetica','italic');doc.setTextColor(80,80,110);
+  const nota='Este relatório apresenta as movimentações registradas no sistema DooNotifica até a presente data. '+
+    'O teor das notificações, tratativas realizadas e aspectos jurídicos do caso devem ser verificados '+
+    'junto à equipe jurídica responsável. As informações têm caráter informativo e de controle interno.';
+  const lines=doc.splitTextToSize(nota,colW-12);
+  doc.text(lines,margin+7,y+13);
+  return y+36;
+}
+
 function gerarPDFNotif(idx){
   const db=getDB();const n=db.notifs[idx];
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-  const W=210;const margin=20;const lineH=7;let y=margin;
+  const W=210;const margin=18;let y=0;
 
-  // Header bar
-  doc.setFillColor(30,30,40);doc.rect(0,0,W,28,'F');
-  doc.setTextColor(255,255,255);
-  doc.setFontSize(16);doc.setFont('helvetica','bold');
-  doc.text('DooNotifica',margin,12);
-  doc.setFontSize(8);doc.setFont('helvetica','normal');
-  doc.setTextColor(180,180,200);
-  doc.text('PROPRIEDADE INTELECTUAL — RELATÓRIO DE MOVIMENTAÇÃO',margin,19);
-  doc.setTextColor(120,120,150);
-  doc.text('Gerado em: '+new Date().toLocaleDateString('pt-BR')+' às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),margin,25);
+  pdfHeader(doc,W,margin,'NOTIFICAÇÃO EXTRAJUDICIAL',79,110,247);
+  y=40;
 
-  y=38;
-  // Title
-  doc.setFillColor(79,110,247);doc.rect(margin,y,W-margin*2,8,'F');
-  doc.setTextColor(255,255,255);doc.setFontSize(10);doc.setFont('helvetica','bold');
-  doc.text('NOTIFICAÇÃO EXTRAJUDICIAL',margin+4,y+5.5);
-  y+=14;
-
-  // Info block
-  function row(label,value,yPos){
-    doc.setFillColor(245,245,250);doc.rect(margin,yPos,W-margin*2,lineH,'F');
-    doc.setDrawColor(220,220,235);doc.rect(margin,yPos,W-margin*2,lineH,'S');
-    doc.setTextColor(100,100,130);doc.setFontSize(8);doc.setFont('helvetica','bold');
-    doc.text(label,margin+3,yPos+4.8);
-    doc.setTextColor(30,30,50);doc.setFont('helvetica','normal');doc.setFontSize(8.5);
-    doc.text(value||'—',margin+55,yPos+4.8);
-    return yPos+lineH;
-  }
-
-  doc.setTextColor(60,60,90);doc.setFontSize(9);doc.setFont('helvetica','bold');
-  doc.text('1. IDENTIFICAÇÃO DAS PARTES',margin,y);
-  y+=5;
-  y=row('Cliente (Titular)',n.cliente,y);
-  y=row('Notificado',n.notificado,y);
-  y=row('Marca envolvida',n.marca||'—',y);
-  y=row('Responsável',n.resp,y);
-  y+=6;
-
-  doc.setFont('helvetica','bold');doc.setFontSize(9);
-  doc.text('2. DADOS DO ENVIO',margin,y);y+=5;
-  const venc=n.envio&&n.prazo?fmtDate(addDays(n.envio,n.prazo)):'—';
-  y=row('Data de envio',fmtDate(n.envio),y);
-  y=row('Prazo concedido',n.prazo?n.prazo+' dias (vencimento: '+venc+')':'—',y);
-  y=row('Canais utilizados',(n.channels&&n.channels.length)?n.channels.join(', '):'—',y);
-  y+=6;
-
-  doc.setFont('helvetica','bold');doc.setFontSize(9);
-  doc.text('3. STATUS ATUAL',margin,y);y+=5;
-
-  const statusMap={cadastrada:'Cadastrada',enviada:'Enviada — aguardando resposta',aguardando:'Aguardando resposta',respondida:'Respondida',resolvida:'Resolvida / Concluída',standby:'Stand-by',arquivada:'Arquivada','ag-cliente':'Aguardando retorno do cliente',judicial:'Encaminhado para via judicial'};
-  y=row('Situação do caso',statusMap[n.status]||n.status,y);
-
-  const d=n.envio&&n.prazo?diasR(n.envio,n.prazo):null;
-  if(d!==null){
-    const prazoInfo=d<0?'Prazo vencido há '+Math.abs(d)+' dia(s)':d===0?'Prazo vence hoje':d+' dia(s) restantes';
-    y=row('Prazo',prazoInfo,y);
-  }
-  y+=6;
-
-  // Retorno
-  doc.setFont('helvetica','bold');doc.setFontSize(9);
-  doc.text('4. RETORNO',margin,y);y+=5;
-  const retorno=(['respondida','resolvida'].includes(n.status))?'Sim — caso respondido/resolvido':'Não há registro de retorno até a data deste relatório';
-  y=row('Houve retorno?',retorno,y);
+  // IDENTIFICAÇÃO
+  y=pdfSectionTitle(doc,margin,y,'1','IDENTIFICAÇÃO DAS PARTES',79,110,247);
+  y=pdfInfoBlock(doc,margin,W,y,[
+    ['Nosso cliente (Titular da Marca)',n.cliente],
+    ['Parte notificada',n.notificado],
+    ['Marca / Sinal envolvido',n.marca||'—'],
+    ['Advogado / Responsável',n.resp],
+    ['Registro do caso',n.criadoPor+' em '+fmtDate((n.criado||'').slice(0,10))],
+  ]);
   y+=8;
 
-  // Text block
-  doc.setFillColor(248,248,252);doc.rect(margin,y,W-margin*2,38,'F');
-  doc.setDrawColor(200,200,220);doc.rect(margin,y,W-margin*2,38,'S');
-  doc.setTextColor(80,80,120);doc.setFontSize(8);doc.setFont('helvetica','bolditalic');
-  doc.text('NOTA AO CLIENTE:',margin+4,y+6);
-  doc.setFont('helvetica','italic');doc.setTextColor(90,90,110);
-  const nota='O presente relatório contempla as informações de movimentação registradas no sistema DooNotifica '+'até a presente data. Quanto ao teor das notificações, das tratativas realizadas e dos aspectos '+'jurídicos do caso, recomenda-se verificação junto à equipe jurídica responsável pelo acompanhamento '+'da demanda. As informações aqui apresentadas têm caráter informativo e de controle interno.';
-  const notaLines=doc.splitTextToSize(nota,W-margin*2-8);
-  doc.text(notaLines,margin+4,y+12);
-  y+=44;
+  // LINHA DO TEMPO
+  y=pdfSectionTitle(doc,margin,y,'2','LINHA DO TEMPO DA MOVIMENTAÇÃO',79,110,247);
 
-  if(n.obs){
-    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(60,60,90);
-    doc.text('5. OBSERVAÇÕES REGISTRADAS',margin,y);y+=5;
-    doc.setFillColor(255,255,255);doc.rect(margin,y,W-margin*2,20,'F');
-    doc.setDrawColor(220,220,235);doc.rect(margin,y,W-margin*2,20,'S');
-    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(70,70,90);
-    const obsLines=doc.splitTextToSize(n.obs,W-margin*2-6);
-    doc.text(obsLines,margin+3,y+5);
-    y+=24;
+  const statusMap={cadastrada:'Caso cadastrado no sistema',enviada:'Notificação enviada',providencia:'Prazo vencido — aguarda providência',respondida:'Notificado respondeu',resolvida:'Caso resolvido / Concluído',standby:'Caso em stand-by',arquivada:'Caso arquivado','ag-cliente':'Aguardando retorno do cliente',judicial:'Encaminhado para via judicial'};
+  const statusColors={cadastrada:[148,163,184],enviada:[79,110,247],providencia:[240,82,82],respondida:[45,212,160],resolvida:[45,212,160],standby:[245,166,35],arquivada:[120,120,140],'ag-cliente':[251,146,60],judicial:[168,85,247]};
+  const chipColors={cadastrada:[[230,235,245],[80,100,160]],enviada:[[220,228,255],[50,70,180]],providencia:[[255,220,220],[160,40,40]],respondida:[[210,250,235],[30,120,90]],resolvida:[[210,250,235],[30,120,90]],standby:[[255,235,200],[120,80,10]],arquivada:[[225,225,230],[80,80,90]],'ag-cliente':[[255,230,210],[140,60,10]],judicial:[[235,220,255],[100,40,180]]};
+
+  const vencDate=n.envio&&n.prazo?fmtDate(addDays(n.envio,n.prazo)):null;
+  const d=n.envio&&n.prazo?diasR(n.envio,n.prazo):null;
+  const prazoStatus=d===null?'—':d<0?'Vencido há '+Math.abs(d)+' dia(s)':d===0?'Vence hoje':d+' dia(s) restantes';
+
+  const events=[];
+
+  // Event 1: cadastro
+  events.push({date:fmtDate((n.criado||'').slice(0,10)),title:'Demanda cadastrada',desc:'Caso registrado por '+n.criadoPor+'. Marca: '+(n.marca||'—')+'.',color:[148,163,184],h:20});
+
+  // Event 2: envio
+  if(n.envio){
+    events.push({date:fmtDate(n.envio),title:'Notificação enviada',desc:'Canais: '+((n.channels&&n.channels.length)?n.channels.join(', '):'—')+'. Prazo concedido: '+(n.prazo||'—')+' dias.',color:[79,110,247],chip:'Prazo: '+prazoStatus,chipFill:d<0?[255,220,220]:[220,230,255],chipColor:d<0?[160,30,30]:[50,70,180],h:28});
   }
 
-  // Footer
-  const pageH=297;
-  doc.setFillColor(30,30,40);doc.rect(0,pageH-14,W,14,'F');
-  doc.setTextColor(120,120,150);doc.setFontSize(7);doc.setFont('helvetica','normal');
-  doc.text('DooNotifica — Sistema de Controle de Notificações | Propriedade Intelectual',margin,pageH-7);
-  doc.text('Responsável: '+n.resp+'  |  Criado por: '+(n.criadoPor||'—'),W-margin,pageH-7,{align:'right'});
+  // Event 3: vencimento
+  if(vencDate){
+    const vencColor=d<0?[240,82,82]:[245,166,35];
+    events.push({date:vencDate,title:'Limite para resposta do notificado',desc:d<0?'Prazo expirado. Caso movido para "Tomar Providência".':'Aguardando resposta até esta data.',color:vencColor,chip:prazoStatus,chipFill:d<0?[255,215,215]:[255,235,200],chipColor:d<0?[150,30,30]:[130,80,10],h:24});
+  }
 
-  doc.save('relatorio-notificacao-'+(n.cliente||'caso').replace(/\s+/g,'-').toLowerCase()+'.pdf');
+  // Event 4: status atual
+  const stColor=statusColors[n.status]||[79,110,247];
+  const stChip=chipColors[n.status]||[[220,228,255],[50,70,180]];
+  events.push({date:n.statusData?fmtDate(n.statusData):'Atual',title:'Status atual: '+statusMap[n.status],desc:(n.statusObs||'')+(n.statusPor?' Atualizado por: '+n.statusPor+'.':''),color:stColor,chip:getStatusLabel(n.status),chipFill:stChip[0],chipColor:stChip[1],h:24});
+
+  // Event 5: emails/followups linked
+  const emails=db.emails.filter(e=>(e.caso||'').toLowerCase().includes((n.cliente||'').toLowerCase().slice(0,8)));
+  emails.forEach(e=>{
+    const tipos={followup:'Follow-up',cobranca:'Cobrança de retorno','2anotif':'2ª notificação'};
+    events.push({date:fmtDate(e.data),title:(tipos[e.tipo]||e.tipo)+' — '+e.quem,desc:'Destinatário: '+(e.dest||'—')+(e.viu?'. Visto por: '+e.viu:'')+'. '+(e.obs||''),color:[251,146,60],h:22});
+  });
+
+  // Check page space
+  const evH=events.reduce((s,e)=>s+e.h,0);
+  if(y+evH>260){doc.addPage();y=20;}
+
+  y=pdfTimeline(doc,margin,W,y,events);
+  y+=8;
+
+  // OBS
+  if(n.obs){
+    if(y>230){doc.addPage();y=20;}
+    y=pdfSectionTitle(doc,margin,y,'3','OBSERVAÇÕES REGISTRADAS',100,100,140);
+    doc.setFillColor(250,250,252);doc.rect(margin,y,W-margin*2,24,'F');
+    doc.setDrawColor(215,215,230);doc.rect(margin,y,W-margin*2,24,'S');
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(70,70,90);
+    const obsL=doc.splitTextToSize(n.obs,W-margin*2-8);
+    doc.text(obsL,margin+4,y+6);
+    y+=28;
+  }
+
+  if(y>235){doc.addPage();y=20;}
+  y=pdfNota(doc,margin,W,y);
+  pdfFooter(doc,W,margin,n.resp,n.criadoPor||'—');
+  doc.save('doonotifica-notificacao-'+(n.cliente||'caso').replace(/\s+/g,'-').toLowerCase()+'.pdf');
 }
 
 function gerarPDFContra(idx){
   const db=getDB();const c=db.contras[idx];
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-  const W=210;const margin=20;const lineH=7;let y=margin;
+  const W=210;const margin=18;let y=0;
 
-  doc.setFillColor(30,30,40);doc.rect(0,0,W,28,'F');
-  doc.setTextColor(255,255,255);doc.setFontSize(16);doc.setFont('helvetica','bold');
-  doc.text('DooNotifica',margin,12);
-  doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(180,180,200);
-  doc.text('PROPRIEDADE INTELECTUAL — RELATÓRIO DE MOVIMENTAÇÃO',margin,19);
-  doc.setTextColor(120,120,150);
-  doc.text('Gerado em: '+new Date().toLocaleDateString('pt-BR')+' às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),margin,25);
+  pdfHeader(doc,W,margin,'CONTRA-NOTIFICAÇÃO EXTRAJUDICIAL',45,212,160);
+  y=40;
 
-  y=38;
-  doc.setFillColor(45,212,160);doc.rect(margin,y,W-margin*2,8,'F');
-  doc.setTextColor(255,255,255);doc.setFontSize(10);doc.setFont('helvetica','bold');
-  doc.text('CONTRA-NOTIFICAÇÃO EXTRAJUDICIAL',margin+4,y+5.5);
-  y+=14;
-
-  function row(label,value,yPos){
-    doc.setFillColor(245,245,250);doc.rect(margin,yPos,W-margin*2,lineH,'F');
-    doc.setDrawColor(220,220,235);doc.rect(margin,yPos,W-margin*2,lineH,'S');
-    doc.setTextColor(100,100,130);doc.setFontSize(8);doc.setFont('helvetica','bold');
-    doc.text(label,margin+3,yPos+4.8);
-    doc.setTextColor(30,30,50);doc.setFont('helvetica','normal');doc.setFontSize(8.5);
-    doc.text(value||'—',margin+60,yPos+4.8);
-    return yPos+lineH;
-  }
-
-  doc.setTextColor(60,60,90);doc.setFontSize(9);doc.setFont('helvetica','bold');
-  doc.text('1. IDENTIFICAÇÃO DAS PARTES',margin,y);y+=5;
-  y=row('Nosso cliente',c.cliente,y);
-  y=row('Empresa notificante',c.notificante,y);
-  y=row('Marca contestada',c.marca||'—',y);
-  y=row('Responsável',c.resp,y);
-  y+=6;
-
-  doc.setFont('helvetica','bold');doc.setFontSize(9);
-  doc.text('2. NOTIFICAÇÃO RECEBIDA',margin,y);y+=5;
-  const limDef=c.recebida&&c.prazoRec?fmtDate(addDays(c.recebida,c.prazoRec)):'—';
-  y=row('Recebida em',fmtDate(c.recebida),y);
-  y=row('Prazo p/ defesa',c.prazoRec?c.prazoRec+' dias (limite: '+limDef+')':'—',y);
-  y+=6;
-
-  doc.setFont('helvetica','bold');doc.setFontSize(9);
-  doc.text('3. NOSSA CONTRA-NOTIFICAÇÃO',margin,y);y+=5;
-  const alertaData=c.enviada&&c.alerta?fmtDate(addDays(c.enviada,c.alerta)):'—';
-  y=row('Enviada em',c.enviada?fmtDate(c.enviada):'Ainda não enviada',y);
-  y=row('Canais utilizados',(c.channels&&c.channels.length)?c.channels.join(', '):'—',y);
-  y=row('Prazo p/ retorno',c.alerta?c.alerta+' dias após envio (alerta: '+alertaData+')':'—',y);
-  y+=6;
-
-  doc.setFont('helvetica','bold');doc.setFontSize(9);
-  doc.text('4. STATUS ATUAL',margin,y);y+=5;
-  const statusMap={cadastrada:'Cadastrada — aguardando envio',enviada:'Contra-notificação enviada',aguardando:'Aguardando retorno do notificante',respondida:'Respondida',resolvida:'Caso resolvido / Encerrado',standby:'Stand-by',arquivada:'Arquivado','ag-cliente':'Aguardando cliente',judicial:'Encaminhado para via judicial'};
-  y=row('Situação',statusMap[c.status]||c.status,y);
-  const retorno=(['respondida','resolvida'].includes(c.status))?'Sim — caso com retorno registrado':'Sem registro de retorno do notificante até esta data';
-  y=row('Retorno do notificante',retorno,y);
+  y=pdfSectionTitle(doc,margin,y,'1','IDENTIFICAÇÃO DAS PARTES',45,160,120);
+  y=pdfInfoBlock(doc,margin,W,y,[
+    ['Nosso cliente (Notificado)',c.cliente],
+    ['Empresa notificante',c.notificante],
+    ['Marca / Sinal contestado',c.marca||'—'],
+    ['Advogado / Responsável',c.resp],
+    ['Registro do caso',c.criadoPor+' em '+fmtDate((c.criado||'').slice(0,10))],
+  ]);
   y+=8;
 
-  doc.setFillColor(248,248,252);doc.rect(margin,y,W-margin*2,38,'F');
-  doc.setDrawColor(200,200,220);doc.rect(margin,y,W-margin*2,38,'S');
-  doc.setTextColor(80,80,120);doc.setFontSize(8);doc.setFont('helvetica','bolditalic');
-  doc.text('NOTA AO CLIENTE:',margin+4,y+6);
-  doc.setFont('helvetica','italic');doc.setTextColor(90,90,110);
-  const nota='O presente relatório apresenta as informações de movimentação da contra-notificação registradas '+'no sistema DooNotifica até a presente data. Para análise do teor das notificações, das '+'tratativas realizadas, das estratégias jurídicas adotadas e dos desdobramentos do caso, '+'recomenda-se consulta à equipe jurídica responsável pelo acompanhamento da demanda.';
-  const notaLines=doc.splitTextToSize(nota,W-margin*2-8);
-  doc.text(notaLines,margin+4,y+12);
-  y+=44;
+  y=pdfSectionTitle(doc,margin,y,'2','LINHA DO TEMPO DA MOVIMENTAÇÃO',45,160,120);
 
-  if(c.obs){
-    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(60,60,90);
-    doc.text('5. OBSERVAÇÕES',margin,y);y+=5;
-    doc.setFillColor(255,255,255);doc.rect(margin,y,W-margin*2,20,'F');
-    doc.setDrawColor(220,220,235);doc.rect(margin,y,W-margin*2,20,'S');
-    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(70,70,90);
-    const obsLines=doc.splitTextToSize(c.obs,W-margin*2-6);
-    doc.text(obsLines,margin+3,y+5);
+  const limDef=c.recebida&&c.prazoRec?fmtDate(addDays(c.recebida,c.prazoRec)):null;
+  const alertaData=c.enviada&&c.alerta?fmtDate(addDays(c.enviada,c.alerta)):null;
+  const dAlerta=c.enviada&&c.alerta?diasR(c.enviada,c.alerta):null;
+  const alertaStatus=dAlerta===null?'—':dAlerta<0?'Vencido há '+Math.abs(dAlerta)+'d':dAlerta===0?'Vence hoje':dAlerta+'d restantes';
+
+  const events=[];
+
+  events.push({date:fmtDate((c.criado||'').slice(0,10)),title:'Demanda cadastrada',desc:'Caso registrado por '+c.criadoPor+'. Marca contestada: '+(c.marca||'—')+'.',color:[148,163,184],h:20});
+
+  if(c.recebida){
+    events.push({date:fmtDate(c.recebida),title:'Notificação recebida do notificante',desc:'Prazo concedido pelo notificante para defesa: '+(c.prazoRec||'—')+' dias.',color:[240,82,82],chip:limDef?'Limite: '+limDef:'—',chipFill:[255,215,215],chipColor:[150,30,30],h:26});
   }
 
-  const pageH=297;
-  doc.setFillColor(30,30,40);doc.rect(0,pageH-14,W,14,'F');
-  doc.setTextColor(120,120,150);doc.setFontSize(7);doc.setFont('helvetica','normal');
-  doc.text('DooNotifica — Sistema de Controle de Notificações | Propriedade Intelectual',margin,pageH-7);
-  doc.text('Responsável: '+c.resp+'  |  Criado por: '+(c.criadoPor||'—'),W-margin,pageH-7,{align:'right'});
+  if(limDef){
+    events.push({date:limDef,title:'Limite para apresentação de defesa',desc:'Data-limite estipulada pelo notificante para resposta.',color:[245,166,35],h:18});
+  }
 
-  doc.save('relatorio-contra-notificacao-'+(c.cliente||'caso').replace(/\s+/g,'-').toLowerCase()+'.pdf');
+  if(c.enviada){
+    events.push({date:fmtDate(c.enviada),title:'Contra-notificação enviada',desc:'Canais: '+((c.channels&&c.channels.length)?c.channels.join(', '):'—')+'. Aguardando retorno por '+(c.alerta||'—')+' dias.',color:[45,212,160],chip:'Alerta: '+alertaStatus,chipFill:dAlerta<0?[255,215,215]:[210,250,235],chipColor:dAlerta<0?[150,30,30]:[30,120,90],h:28});
+  }
+
+  if(alertaData){
+    events.push({date:alertaData,title:'Prazo de alerta de retorno',desc:dAlerta<0?'Prazo expirado sem retorno do notificante. Caso em "Tomar Providência".':'Aguardando retorno do notificante até esta data.',color:dAlerta<0?[240,82,82]:[245,166,35],h:20});
+  }
+
+  const stColors={cadastrada:[148,163,184],enviada:[45,212,160],providencia:[240,82,82],respondida:[45,212,160],resolvida:[45,212,160],standby:[245,166,35],arquivada:[120,120,140]};
+  const stChips={cadastrada:[[230,235,245],[80,100,160]],enviada:[[210,250,235],[30,120,90]],providencia:[[255,220,220],[160,40,40]],respondida:[[210,250,235],[30,120,90]],resolvida:[[210,250,235],[30,120,90]],standby:[[255,235,200],[120,80,10]],arquivada:[[225,225,230],[80,80,90]]};
+  const stColor=stColors[c.status]||[79,110,247];
+  const stChip=stChips[c.status]||[[220,228,255],[50,70,180]];
+  const stMap={cadastrada:'Aguardando envio',enviada:'Contra-notif. enviada',providencia:'Prazo vencido — tomar providência',respondida:'Notificante respondeu',resolvida:'Caso resolvido',standby:'Stand-by',arquivada:'Arquivado','ag-cliente':'Ag. Cliente',judicial:'Ag. Judicial'};
+  events.push({date:c.statusData?fmtDate(c.statusData):'Atual',title:'Status atual: '+stMap[c.status],desc:(c.obs||'')+(c.statusPor?' Atualizado por: '+c.statusPor+'.':''),color:stColor,chip:getStatusLabel(c.status),chipFill:stChip[0],chipColor:stChip[1],h:24});
+
+  const evH=events.reduce((s,e)=>s+e.h,0);
+  if(y+evH>260){doc.addPage();y=20;}
+  y=pdfTimeline(doc,margin,W,y,events);
+  y+=8;
+
+  if(c.obs){
+    if(y>230){doc.addPage();y=20;}
+    y=pdfSectionTitle(doc,margin,y,'3','OBSERVAÇÕES REGISTRADAS',80,80,120);
+    doc.setFillColor(250,250,252);doc.rect(margin,y,W-margin*2,24,'F');
+    doc.setDrawColor(215,215,230);doc.rect(margin,y,W-margin*2,24,'S');
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(70,70,90);
+    const obsL=doc.splitTextToSize(c.obs,W-margin*2-8);
+    doc.text(obsL,margin+4,y+6);
+    y+=28;
+  }
+
+  if(y>235){doc.addPage();y=20;}
+  y=pdfNota(doc,margin,W,y);
+  pdfFooter(doc,W,margin,c.resp,c.criadoPor||'—');
+  doc.save('doonotifica-contra-notificacao-'+(c.cliente||'caso').replace(/\s+/g,'-').toLowerCase()+'.pdf');
 }
+
 
 function detailContra(idx){
   const db=getDB();const c=db.contras[idx];
@@ -1458,7 +1765,7 @@ function detailContra(idx){
         <select id="quickStatusC" style="height:32px;font-size:12px">
           <option value="cadastrada">Cadastrada</option>
           <option value="enviada">Enviada</option>
-          <option value="aguardando">Aguardando</option>
+          <option value="providencia">Tomar Providência</option>
           <option value="respondida">Respondida</option>
           <option value="resolvida">Resolvida ✓</option>
           <option value="standby">Stand-by</option>
@@ -1468,11 +1775,92 @@ function detailContra(idx){
         </select>
       </div>
       <button class="btn primary" onclick="const db=getDB();db.contras[${idx}].status=document.getElementById('quickStatusC').value;db.contras[${idx}].statusPor=currentUser.nome;saveDB(db);closeModal('detail');renderContra();renderKanban();renderPainel();checkAlerts()"><i class="ti ti-check"></i>Atualizar status</button>
+      <button class="btn" onclick="openEditContra(${idx})" style="color:var(--accent);border-color:var(--accent)"><i class="ti ti-pencil"></i>Editar</button>
       <button class="btn" onclick="gerarPDFContra(${idx})" style="color:var(--danger);border-color:var(--danger)"><i class="ti ti-file-type-pdf"></i>Gerar PDF</button>
       <button class="btn" onclick="closeModal('detail')">Fechar</button>
     </div>`;
   document.getElementById('modal-detail').classList.add('open');
 }
+
+// EDIT FUNCTIONS
+let editIdx = null;
+
+function openEditNotif(idx){
+  const db=getDB(); const n=db.notifs[idx]; editIdx=idx;
+  document.getElementById('en-cliente').value=n.cliente||'';
+  document.getElementById('en-notificado').value=n.notificado||'';
+  document.getElementById('en-marca').value=n.marca||'';
+  document.getElementById('en-envio').value=n.envio||'';
+  document.getElementById('en-prazo').value=n.prazo||'';
+  document.getElementById('en-obs').value=n.obs||'';
+  // populate resp
+  const db2=getDB();
+  document.getElementById('en-resp').innerHTML=db2.users.map(u=>`<option value="${u.nome}"${u.nome===n.resp?' selected':''}>${u.nome}</option>`).join('');
+  // channels
+  resetChannels('ench');
+  const chMap={'E-mail':'ench-email','WhatsApp':'ench-whats','Correios AR':'ench-correio','Cartório':'ench-cartorio','Presencial':'ench-presencial'};
+  (n.channels||[]).forEach(ch=>{const el=document.getElementById(chMap[ch]);if(el)el.classList.add('selected');});
+  closeModal('detail');
+  document.getElementById('modal-edit-notif').classList.add('open');
+}
+
+function saveEditNotif(){
+  if(editIdx===null)return;
+  const db=getDB(); const n=db.notifs[editIdx];
+  n.cliente=document.getElementById('en-cliente').value.trim();
+  n.notificado=document.getElementById('en-notificado').value.trim();
+  n.marca=document.getElementById('en-marca').value.trim();
+  n.resp=document.getElementById('en-resp').value;
+  n.envio=document.getElementById('en-envio').value;
+  n.prazo=document.getElementById('en-prazo').value;
+  n.obs=document.getElementById('en-obs').value;
+  const chMap={'E-mail':'ench-email','WhatsApp':'ench-whats','Correios AR':'ench-correio','Cartório':'ench-cartorio','Presencial':'ench-presencial'};
+  n.channels=Object.entries(chMap).filter(([k,v])=>document.getElementById(v)&&document.getElementById(v).classList.contains('selected')).map(([k])=>k);
+  n.editadoPor=currentUser.nome;
+  n.editadoEm=new Date().toISOString();
+  saveDB(db);closeModal('edit-notif');renderNotif();renderKanban();renderPainel();checkAlerts();
+  editIdx=null;
+}
+
+function openEditContra(idx){
+  const db=getDB(); const c=db.contras[idx]; editIdx=idx;
+  document.getElementById('ec-cliente').value=c.cliente||'';
+  document.getElementById('ec-notificante').value=c.notificante||'';
+  document.getElementById('ec-marca').value=c.marca||'';
+  document.getElementById('ec-recebida').value=c.recebida||'';
+  document.getElementById('ec-prazo-rec').value=c.prazoRec||'';
+  document.getElementById('ec-enviada').value=c.enviada||'';
+  document.getElementById('ec-alerta').value=c.alerta||'';
+  document.getElementById('ec-obs').value=c.obs||'';
+  const db2=getDB();
+  document.getElementById('ec-resp').innerHTML=db2.users.map(u=>`<option value="${u.nome}"${u.nome===c.resp?' selected':''}>${u.nome}</option>`).join('');
+  resetChannels('ecch');
+  const chMap={'E-mail':'ecch-email','WhatsApp':'ecch-whats','Correios AR':'ecch-correio','Cartório':'ecch-cartorio'};
+  (c.channels||[]).forEach(ch=>{const el=document.getElementById(chMap[ch]);if(el)el.classList.add('selected');});
+  closeModal('detail');
+  document.getElementById('modal-edit-contra').classList.add('open');
+}
+
+function saveEditContra(){
+  if(editIdx===null)return;
+  const db=getDB(); const c=db.contras[editIdx];
+  c.cliente=document.getElementById('ec-cliente').value.trim();
+  c.notificante=document.getElementById('ec-notificante').value.trim();
+  c.marca=document.getElementById('ec-marca').value.trim();
+  c.resp=document.getElementById('ec-resp').value;
+  c.recebida=document.getElementById('ec-recebida').value;
+  c.prazoRec=document.getElementById('ec-prazo-rec').value;
+  c.enviada=document.getElementById('ec-enviada').value;
+  c.alerta=document.getElementById('ec-alerta').value;
+  c.obs=document.getElementById('ec-obs').value;
+  const chMap={'E-mail':'ecch-email','WhatsApp':'ecch-whats','Correios AR':'ecch-correio','Cartório':'ecch-cartorio'};
+  c.channels=Object.entries(chMap).filter(([k,v])=>document.getElementById(v)&&document.getElementById(v).classList.contains('selected')).map(([k])=>k);
+  c.editadoPor=currentUser.nome;
+  c.editadoEm=new Date().toISOString();
+  saveDB(db);closeModal('edit-contra');renderContra();renderKanban();renderPainel();checkAlerts();
+  editIdx=null;
+}
+
 </script>
 </body>
 </html>
