@@ -701,7 +701,7 @@ const DB_KEY='doobay_v3';
 // Paste your Apps Script URL below after deploying
 const SCRIPT_URL = ''; // Google Sheets deprecated
 const SB_URL = 'https://vbutupudapgktfdzbojc.supabase.co';
-const SB_KEY = 'sb_publishable_aFjwCQu9BgH5oFoQE3Y0OQ_AbiAEfV9';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZidXR1cHVkYXBna3RmZHpib2pjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjEyNTUsImV4cCI6MjA5NjU5NzI1NX0.WOTB7auPaTfH_6TaxUncWKvRNpiGOehUGzmEax6uAJY';
 let syncEnabled = false;
 let syncStatus = 'local'; // 'local' | 'syncing' | 'synced' | 'error'
 
@@ -767,34 +767,52 @@ async function sheetsGetAll(){
 
 async function sheetsSaveTable(table, data){
   try{
-    // Get current remote to find deletions
-    const remote=await sbGet(table);
-    if(data&&data.length) await sbUpsert(table, data);
+    // Map internal name to supabase table name
+    const tbName = table==='users'?'usuarios':table;
+    if(!data||!data.length) return;
+    const remote=await sbGet(tbName);
+    await sbUpsert(tbName, data);
     if(remote){
       const localIds=new Set((data||[]).map(r=>r.id));
       const toDelete=remote.filter(r=>r.id&&!localIds.has(r.id)).map(r=>r.id);
-      if(toDelete.length) await sbDelete(table, toDelete);
+      if(toDelete.length) await sbDelete(tbName, toDelete);
     }
-  }catch(e){console.error('sheetsSaveTable error:',e);}
+    setSyncStatus('synced');
+  }catch(e){
+    console.error('sheetsSaveTable error:',e);
+    setSyncStatus('error');
+  }
 }
 
 async function syncFromSheets(){
-  if(!SCRIPT_URL){setSyncStatus('local');return;}
   setSyncStatus('syncing');
   const remote=await sheetsGetAll();
-  if(!remote){setSyncStatus('error');return;}
+  if(!remote){setSyncStatus('error');return null;}
   const db=loadDB();
-  // Merge: remote wins (it's the shared source of truth)
+  // Remote is always source of truth
   if(remote.usuarios&&remote.usuarios.length) db.users=remote.usuarios;
   if(remote.notifs) db.notifs=remote.notifs;
   if(remote.contras) db.contras=remote.contras;
   if(remote.emails) db.emails=remote.emails;
-  saveDB(db);
+  _origSaveDB(db); // save locally without triggering another sync
   setSyncStatus('synced');
+  // Re-render current visible page
+  const pages=['painel','kanban','notificacoes','contra','emails','calendario'];
+  pages.forEach(p=>{
+    const el=document.getElementById('page-'+p);
+    if(el&&el.style.display!=='none'){
+      if(p==='painel')renderPainel();
+      if(p==='kanban')renderKanban();
+      if(p==='notificacoes')renderNotif();
+      if(p==='contra')renderContra();
+      if(p==='emails')renderEmails();
+      if(p==='calendario')renderCalendario();
+    }
+  });
   return db;
 }
 
-async function syncToSheets(db){
+async function sheetsSaveTable("notifs",db.notifs){
   if(!SCRIPT_URL) return;
   setSyncStatus('syncing');
   await Promise.all([
@@ -820,11 +838,19 @@ function setSyncStatus(s){
   el.innerHTML=`<i class="ti ${m.icon}" style="font-size:13px;color:${m.color}${s==='syncing'?';animation:spin .8s linear infinite':''}"></i><span style="font-size:11px;color:${m.color};font-family:var(--mono)">${m.label}</span>`;
 }
 
-// Override saveDB to also sync to Sheets
+// Override saveDB to also sync to Supabase
 const _origSaveDB = function(db){localStorage.setItem(DB_KEY,JSON.stringify(db));};
-function saveDB(db){
+function saveDB(db, changedTable){
   _origSaveDB(db);
-  if(SCRIPT_URL) syncToSheets(db);
+  // Sync only changed table for speed, or all if not specified
+  if(changedTable){
+    sheetsSaveTable(changedTable, db[changedTable==='users'?'users':changedTable]);
+  } else {
+    sheetsSaveTable('usuarios', db.users);
+    sheetsSaveTable('notifs', db.notifs);
+    sheetsSaveTable('contras', db.contras);
+    sheetsSaveTable('emails', db.emails);
+  }
 }
 
 let currentUser=null;
@@ -940,24 +966,18 @@ function startApp(){
   document.getElementById('topbarUser').textContent=currentUser.nome;
   if(currentUser.role==='admin')document.getElementById('nav-usuarios').style.display='flex';
   populateResponsaveis();populateMetricFilters();
-  setSyncStatus(SCRIPT_URL?'syncing':'local');
-  if(SCRIPT_URL){
-    syncFromSheets().then(remoteDb=>{
-      if(remoteDb){populateResponsaveis();populateMetricFilters();}
-      showPage('painel');
-      checkAlerts();
-    });
-  } else {
+  setSyncStatus('syncing');
+  // Always sync from Supabase on login
+  syncFromSheets().then(remoteDb=>{
+    if(remoteDb){populateResponsaveis();populateMetricFilters();}
     showPage('painel');
     checkAlerts();
-  }
+  });
+  // Auto-sync every 30 seconds
   setInterval(()=>{
     checkAlerts();
-    if(SCRIPT_URL) syncFromSheets().then(()=>{
-      const p=document.querySelector('[id^="page-"]:not([style*="none"])');
-      if(p){const id=p.id.replace('page-','');if(id==='painel')renderPainel();if(id==='kanban')renderKanban();if(id==='notificacoes')renderNotif();if(id==='contra')renderContra();}
-    });
-  }, 60000);
+    syncFromSheets();
+  }, 30000);
 }
 window.addEventListener('DOMContentLoaded',()=>{const s=sessionStorage.getItem('dn_s');if(s){try{currentUser=JSON.parse(s);startApp();}catch(e){}}});
 
@@ -1474,7 +1494,7 @@ function saveNotif(){
   let status='cadastrada';
   if(envio&&channels.length)status='enviada';
   db.notifs.push({id:uid(),cliente:c,notificado:n,marca:document.getElementById('n-marca').value.trim(),resp:document.getElementById('n-resp').value,envio,prazo,channels,obs:document.getElementById('n-obs').value,status,criadoPor:currentUser.nome,criado:new Date().toISOString()});
-  saveDB(db);closeModal('notif');
+  saveDB(db,'notifs');closeModal('notif');
   ['n-cliente','n-notificado','n-marca','n-obs'].forEach(id=>document.getElementById(id).value='');
   resetChannels('nch');renderNotif();renderKanban();renderPainel();checkAlerts();
 }
@@ -1489,7 +1509,7 @@ function saveContra(){
   const enviada=document.getElementById('c-enviada').value;
   let status='cadastrada';if(enviada&&channels.length)status='enviada';
   db.contras.push({id:uid(),cliente:c,notificante:n,marca:document.getElementById('c-marca').value.trim(),resp:document.getElementById('c-resp').value,recebida:document.getElementById('c-recebida').value,prazoRec:document.getElementById('c-prazo-rec').value,enviada,alerta:document.getElementById('c-alerta').value,channels,obs:document.getElementById('c-obs').value,status,criadoPor:currentUser.nome,criado:new Date().toISOString()});
-  saveDB(db);closeModal('contra');
+  saveDB(db,'contras');closeModal('contra');
   ['c-cliente','c-notificante','c-marca','c-obs'].forEach(id=>document.getElementById(id).value='');
   resetChannels('cch');renderContra();renderKanban();renderPainel();checkAlerts();
 }
@@ -1498,7 +1518,7 @@ function saveEmail(){
   const c=document.getElementById('e-caso').value.trim();if(!c){alert('Informe o caso.');return;}
   const db=getDB();
   db.emails.push({id:uid(),caso:c,tipo:document.getElementById('e-tipo').value,quem:document.getElementById('e-quem').value,data:document.getElementById('e-data').value,hora:document.getElementById('e-hora').value,dest:document.getElementById('e-dest').value,viu:document.getElementById('e-viu').value,obs:document.getElementById('e-obs').value,criadoPor:currentUser.nome,criado:new Date().toISOString()});
-  saveDB(db);closeModal('email');renderEmails();
+  saveDB(db,'emails');closeModal('email');renderEmails();
   ['e-caso','e-dest','e-viu','e-obs'].forEach(id=>document.getElementById(id).value='');
 }
 
@@ -1511,7 +1531,7 @@ function saveUsuario(){
   const db=getDB();
   if(db.users.find(u=>u.user===user)){alert('Usuário já existe.');return;}
   db.users.push({id:uid(),nome,user,pass,role,criado:new Date().toISOString()});
-  saveDB(db);closeModal('usuario');renderUsers();populateResponsaveis();
+  saveDB(db,'usuarios');closeModal('usuario');renderUsers();populateResponsaveis();
   ['u-nome','u-user','u-pass'].forEach(id=>document.getElementById(id).value='');
 }
 
@@ -1926,7 +1946,7 @@ function saveEditNotif(){
   n.channels=Object.entries(chMap).filter(([k,v])=>document.getElementById(v)&&document.getElementById(v).classList.contains('selected')).map(([k])=>k);
   n.editadoPor=currentUser.nome;
   n.editadoEm=new Date().toISOString();
-  saveDB(db);closeModal('edit-notif');renderNotif();renderKanban();renderPainel();checkAlerts();
+  saveDB(db,'notifs');closeModal('edit-notif');renderNotif();renderKanban();renderPainel();checkAlerts();
   editIdx=null;
 }
 
@@ -1965,7 +1985,7 @@ function saveEditContra(){
   c.channels=Object.entries(chMap).filter(([k,v])=>document.getElementById(v)&&document.getElementById(v).classList.contains('selected')).map(([k])=>k);
   c.editadoPor=currentUser.nome;
   c.editadoEm=new Date().toISOString();
-  saveDB(db);closeModal('edit-contra');renderContra();renderKanban();renderPainel();checkAlerts();
+  saveDB(db,'contras');closeModal('edit-contra');renderContra();renderKanban();renderPainel();checkAlerts();
   editIdx=null;
 }
 
