@@ -703,12 +703,29 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4eUFnOQP-1Qll9YQlt
 let syncEnabled = false;
 let syncStatus = 'local'; // 'local' | 'syncing' | 'synced' | 'error'
 
+function jsonp(url){
+  return new Promise((resolve,reject)=>{
+    const cb='_dn_cb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    const script=document.createElement('script');
+    const timeout=setTimeout(()=>{
+      delete window[cb];script.remove();
+      reject(new Error('JSONP timeout'));
+    },15000);
+    window[cb]=function(data){
+      clearTimeout(timeout);delete window[cb];script.remove();
+      resolve(data);
+    };
+    script.src=url+'&callback='+cb;
+    script.onerror=()=>{clearTimeout(timeout);delete window[cb];script.remove();reject(new Error('JSONP error'));};
+    document.head.appendChild(script);
+  });
+}
+
 async function sheetsGetAll(){
   if(!SCRIPT_URL) return null;
   try{
     const url=SCRIPT_URL+'?action=getAll&_='+Date.now();
-    const r=await fetch(url, {redirect:'follow'});
-    const j=await r.json();
+    const j=await jsonp(url);
     return j.success?j.data:null;
   }catch(e){
     console.error('sheetsGetAll error:',e);
@@ -720,7 +737,7 @@ async function sheetsSaveTable(table, data){
   if(!SCRIPT_URL) return;
   try{
     const url=SCRIPT_URL+'?action=save&table='+encodeURIComponent(table)+'&data='+encodeURIComponent(JSON.stringify(data))+'&_='+Date.now();
-    await fetch(url, {redirect:'follow'});
+    await jsonp(url);
   }catch(e){
     console.error('sheetsSaveTable error:',e);
   }
