@@ -908,48 +908,16 @@ function getDB(){return loadDB();}
 // AUTH
 document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 document.getElementById('loginUser').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-async function doLogin(){
+function doLogin(){
   const user=document.getElementById('loginUser').value.trim();
   const pass=document.getElementById('loginPass').value;
   if(!user||!pass){showErr('Preencha usuário e senha.');return;}
 
-  const btn=document.querySelector('.btn-login');
-  btn.textContent='Entrando…';btn.disabled=true;
-
-  // Try to sync from Sheets with 5s timeout — if it fails, use local data
-  if(SCRIPT_URL){
-    try{
-      const syncPromise=sheetsGetAll();
-      const timeoutPromise=new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),5000));
-      const remote=await Promise.race([syncPromise,timeoutPromise]);
-      if(remote&&remote.usuarios&&remote.usuarios.length){
-        const db=loadDB();
-        db.users=remote.usuarios;
-        if(remote.notifs) db.notifs=remote.notifs;
-        if(remote.contras) db.contras=remote.contras;
-        if(remote.emails) db.emails=remote.emails;
-        _origSaveDB(db);
-      }
-    }catch(e){
-      console.warn('Sheets sync skipped:',e.message);
-      // Continue with local data — don't block login
-    }
-  }
-
   const db=getDB();
-
-  // Try exact match first, then case-insensitive
   let found=db.users.find(u=>u.user===user&&u.pass===pass);
   if(!found) found=db.users.find(u=>(u.user||'').toLowerCase()===user.toLowerCase()&&(u.pass||'').toString()===pass);
 
-  btn.textContent='Entrar';btn.disabled=false;
-
-  if(!found){
-    // Show what users exist locally for debug (only in console)
-    console.log('Local users:',db.users.map(u=>u.user));
-    showErr('Usuário ou senha incorretos.');
-    return;
-  }
+  if(!found){showErr('Usuário ou senha incorretos.');return;}
   currentUser=found;
   sessionStorage.setItem('dn_s',JSON.stringify(found));
   startApp();
@@ -966,13 +934,19 @@ function startApp(){
   document.getElementById('topbarUser').textContent=currentUser.nome;
   if(currentUser.role==='admin')document.getElementById('nav-usuarios').style.display='flex';
   populateResponsaveis();populateMetricFilters();
+  // Show app immediately, sync in background
+  populateResponsaveis();populateMetricFilters();
+  showPage('painel');
+  checkAlerts();
   setSyncStatus('syncing');
-  // Always sync from Supabase on login
-  syncFromSheets().then(remoteDb=>{
-    if(remoteDb){populateResponsaveis();populateMetricFilters();}
-    showPage('painel');
-    checkAlerts();
-  });
+  // Sync from Supabase in background after login
+  setTimeout(()=>{
+    syncFromSheets().then(()=>{
+      populateResponsaveis();
+      renderPainel();
+      checkAlerts();
+    });
+  }, 500);
   // Auto-sync every 30 seconds
   setInterval(()=>{
     checkAlerts();
