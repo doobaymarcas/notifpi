@@ -699,48 +699,83 @@ td.pc{color:var(--text);font-weight:500}
 const DB_KEY='doobay_v3';
 // ---- GOOGLE SHEETS SYNC ----
 // Paste your Apps Script URL below after deploying
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4eUFnOQP-1Qll9YQltBLaHBQ2iCy8LZjQfqjcZlQWE0tiA4S9YdeHctnBentfChgJ/exec';
+const SCRIPT_URL = ''; // Google Sheets deprecated
+const SB_URL = 'https://vbutupudapgktfdzbojc.supabase.co';
+const SB_KEY = 'sb_publishable_aFjwCQu9BgH5oFoQE3Y0OQ_AbiAEfV9';
 let syncEnabled = false;
 let syncStatus = 'local'; // 'local' | 'syncing' | 'synced' | 'error'
 
-function jsonp(url){
-  return new Promise((resolve,reject)=>{
-    const cb='_dn_cb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
-    const script=document.createElement('script');
-    const timeout=setTimeout(()=>{
-      delete window[cb];script.remove();
-      reject(new Error('JSONP timeout'));
-    },15000);
-    window[cb]=function(data){
-      clearTimeout(timeout);delete window[cb];script.remove();
-      resolve(data);
-    };
-    script.src=url+'&callback='+cb;
-    script.onerror=()=>{clearTimeout(timeout);delete window[cb];script.remove();reject(new Error('JSONP error'));};
-    document.head.appendChild(script);
-  });
+// ---- SUPABASE REST API ----
+function sbHeaders(){
+  return {
+    'apikey': SB_KEY,
+    'Authorization': 'Bearer '+SB_KEY,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=minimal'
+  };
+}
+
+async function sbGet(table){
+  try{
+    const r=await fetch(SB_URL+'/rest/v1/'+table+'?select=*',{headers:sbHeaders()});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return await r.json();
+  }catch(e){console.error('sbGet '+table+' error:',e);return null;}
+}
+
+async function sbUpsert(table, rows){
+  if(!rows||!rows.length) return;
+  try{
+    const headers={...sbHeaders(),'Prefer':'resolution=merge-duplicates'};
+    await fetch(SB_URL+'/rest/v1/'+table,{
+      method:'POST',headers,
+      body:JSON.stringify(rows)
+    });
+  }catch(e){console.error('sbUpsert '+table+' error:',e);}
+}
+
+async function sbDelete(table, ids){
+  if(!ids||!ids.length) return;
+  try{
+    await fetch(SB_URL+'/rest/v1/'+table+'?id=in.('+ids.map(i=>'"'+i+'"').join(',')+')',{
+      method:'DELETE',headers:sbHeaders()
+    });
+  }catch(e){console.error('sbDelete '+table+' error:',e);}
+}
+
+async function sbSync(table, localRows){
+  // Get remote rows
+  const remote=await sbGet(table);
+  if(remote===null) return; // offline, skip
+  // Upsert all local rows to remote
+  if(localRows&&localRows.length) await sbUpsert(table, localRows);
+  // Delete remote rows not in local
+  const localIds=new Set((localRows||[]).map(r=>r.id));
+  const toDelete=remote.filter(r=>!localIds.has(r.id)).map(r=>r.id);
+  if(toDelete.length) await sbDelete(table, toDelete);
 }
 
 async function sheetsGetAll(){
-  if(!SCRIPT_URL) return null;
   try{
-    const url=SCRIPT_URL+'?action=getAll&_='+Date.now();
-    const j=await jsonp(url);
-    return j.success?j.data:null;
-  }catch(e){
-    console.error('sheetsGetAll error:',e);
-    return null;
-  }
+    const [usuarios,notifs,contras,emails]=await Promise.all([
+      sbGet('usuarios'),sbGet('notifs'),sbGet('contras'),sbGet('emails')
+    ]);
+    if(!usuarios) return null;
+    return {usuarios,notifs:notifs||[],contras:contras||[],emails:emails||[]};
+  }catch(e){console.error('sheetsGetAll error:',e);return null;}
 }
 
 async function sheetsSaveTable(table, data){
-  if(!SCRIPT_URL) return;
   try{
-    const url=SCRIPT_URL+'?action=save&table='+encodeURIComponent(table)+'&data='+encodeURIComponent(JSON.stringify(data))+'&_='+Date.now();
-    await jsonp(url);
-  }catch(e){
-    console.error('sheetsSaveTable error:',e);
-  }
+    // Get current remote to find deletions
+    const remote=await sbGet(table);
+    if(data&&data.length) await sbUpsert(table, data);
+    if(remote){
+      const localIds=new Set((data||[]).map(r=>r.id));
+      const toDelete=remote.filter(r=>r.id&&!localIds.has(r.id)).map(r=>r.id);
+      if(toDelete.length) await sbDelete(table, toDelete);
+    }
+  }catch(e){console.error('sheetsSaveTable error:',e);}
 }
 
 async function syncFromSheets(){
@@ -826,11 +861,21 @@ const STATUS_LABELS={
   arquivada:'Arquivada','ag-cliente':'Ag. Cliente',judicial:'Ag. Judicial'
 };
 
-function loadDB(){try{return JSON.parse(localStorage.getItem(DB_KEY))||initDB();}catch(e){return initDB();}}
-function initDB(){const db={users:[
-  {id:'u1',nome:'Administrador',user:'admin',pass:'admin2026',role:'admin',criado:new Date().toISOString()},
-  {id:'u2',nome:'Raica',user:'raica',pass:'raica2026',role:'user',criado:new Date().toISOString()}
-],notifs:[],contras:[],emails:[]};saveDB(db);return db;}
+const FALLBACK_USERS=[
+  {id:'u1',nome:'Administrador',user:'admin',pass:'admin2026',role:'admin',criado:'2026-01-01T00:00:00.000Z'},
+  {id:'u2',nome:'Raica',user:'raica',pass:'raica2026',role:'user',criado:'2026-01-01T00:00:00.000Z'}
+];
+function loadDB(){
+  try{
+    const db=JSON.parse(localStorage.getItem(DB_KEY))||initDB();
+    // Always ensure fallback users exist locally
+    FALLBACK_USERS.forEach(fu=>{
+      if(!db.users.find(u=>u.user===fu.user)) db.users.push(fu);
+    });
+    return db;
+  }catch(e){return initDB();}
+}
+function initDB(){const db={users:[...FALLBACK_USERS],notifs:[],contras:[],emails:[]};_origSaveDB(db);return db;}
 function saveDB(db){localStorage.setItem(DB_KEY,JSON.stringify(db));}
 function getDB(){return loadDB();}
 
